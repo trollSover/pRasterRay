@@ -1,0 +1,81 @@
+﻿Build started 2015-09-26 15:14:49.
+     1>Project "D:\Programmering\C++\GameLib\pThesis\pThesis.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\MSVS\VS 2013\VC\bin\CL.exe /c /ID:\Programmering\C++\GameLib\pThesis\include /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Application\VoxelApp.cpp
+         VoxelApp.cpp
+     1>d:\programmering\c++\gamelib\pthesis\global\tcamera.h(75): warning C4244: 'argument' : conversion from 'const float' to 'uint', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\marchingcubes.h(386): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(178): warning C4129: ' ' : unrecognized character escape sequence
+     1>d:\programmering\c++\gamelib\pthesis\application\voxelapp.cpp(209): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\utils\vector_util.h(118): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+                 d:\programmering\c++\gamelib\pthesis\utils\vector_util.h(118) : while compiling class template member function 'VECTOR::VEC3<float> VECTOR::VEC3<float>::operator /(const T &)'
+                 with
+                 [
+                     T=float
+                 ]
+                 d:\programmering\c++\gamelib\pthesis\application\voxelapp.cpp(209) : see reference to function template instantiation 'VECTOR::VEC3<float> VECTOR::VEC3<float>::operator /(const T &)' being compiled
+                 with
+                 [
+                     T=float
+                 ]
+                 d:\programmering\c++\gamelib\pthesis\coresystems\corestd.h(86) : see reference to class template instantiation 'VECTOR::VEC3<float>' being compiled
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(54): warning C4018: '<' : signed/unsigned mismatch
+                 d:\programmering\c++\gamelib\pthesis\application\svo.h(40) : while compiling class template member function 'bool SparseVoxelOctree<VOXEL::NC>::CreateSVO(const std::string &)'
+                 d:\programmering\c++\gamelib\pthesis\application\voxelapp.cpp(157) : see reference to function template instantiation 'bool SparseVoxelOctree<VOXEL::NC>::CreateSVO(const std::string &)' being compiled
+                 d:\programmering\c++\gamelib\pthesis\application\voxelapp.h(68) : see reference to class template instantiation 'SparseVoxelOctree<VOXEL::NC>' being compiled
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(58): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(121): warning C4244: 'argument' : conversion from 'uint64_t' to 'uint32_t', possible loss of data
+                 d:\programmering\c++\gamelib\pthesis\application\svo.h(114) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::GPU_Node &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)'
+                 with
+                 [
+                     _Ty=VOXEL::GPU_Voxel<VOXEL::NC>
+                 ]
+                 d:\programmering\c++\gamelib\pthesis\application\voxelapp.cpp(165) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::GPU_Node &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)' being compiled
+                 with
+                 [
+                     _Ty=VOXEL::GPU_Voxel<VOXEL::NC>
+                 ]
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(149): warning C4018: '<' : signed/unsigned mismatch
+                 d:\programmering\c++\gamelib\pthesis\application\svo.h(146) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::GPU_Node &,CELL &,int)'
+                 d:\programmering\c++\gamelib\pthesis\application\voxelapp.cpp(170) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::GPU_Node &,CELL &,int)' being compiled
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(151): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(156): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(156): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(157): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(157): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(158): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(158): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(159): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>d:\programmering\c++\gamelib\pthesis\application\svo.h(159): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+       Link:
+         C:\MSVS\VS 2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Programmering\C++\GameLib\pThesis\Debug\pThesis.exe" /INCREMENTAL /NOLOGO lib\FreeImage.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\Programmering\C++\GameLib\pThesis\Debug\pThesis.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\Programmering\C++\GameLib\pThesis\Debug\pThesis.lib" /MACHINE:X86 Debug\DebugRenderer.obj
+         Debug\SVO_Loader.obj
+         Debug\VoxelApp.obj
+         Debug\Core.obj
+         Debug\DXDriver.obj
+         Debug\Window.obj
+         Debug\TimerQPC.obj
+         Debug\XMCamera.obj
+         Debug\WICTextureLoader.obj
+         Debug\BackBufferRender.obj
+         Debug\Buffer.obj
+         Debug\Culling.obj
+         Debug\Overlay.obj
+         Debug\Rasterizer.obj
+         Debug\RayCaster.obj
+         Debug\RayTracer.obj
+         Debug\RenderTarget.obj
+         Debug\Render_Create.obj
+         Debug\Shader.obj
+         Debug\Source.obj
+         pThesis.vcxproj -> D:\Programmering\C++\GameLib\pThesis\Debug\pThesis.exe
+       PostBuildEvent:
+         xcopy "D:\Programmering\C++\GameLib\pThesis\*.dll" "D:\Programmering\C++\GameLib\pThesis\Debug\" /Y
+         :VCEnd
+         Det gick inte att hitta filen *.dll.
+         0 fil(er) kopierades
+     1>Done Building Project "D:\Programmering\C++\GameLib\pThesis\pThesis.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.90
