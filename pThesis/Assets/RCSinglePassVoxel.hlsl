@@ -1,7 +1,7 @@
 #include "Shaders/App.hlsl"
 
 // output buffer - in this case the backbuffer
-RWTexture2D<float> readBuffer : register(u4);
+RWTexture2D<float>  readBuffer  : register(u4);
 RWTexture2D<float4> writeBuffer : register(u5);
 
 static const float maxDist = sqrt(2.0);
@@ -10,10 +10,10 @@ static const float stepSize = maxDist / float(numSamples);
 
 /* By morton Order */
 static const float3 offset[] = {
-	float3(0,0,0	),
-	float3(0.5,0,0	),
-	float3(0,0.5,0	),
-	float3(0.5,0.5,0),
+	float3(0, 0, 0),
+	float3(0.5, 0, 0),
+	float3(0, 0.5, 0),
+	float3(0.5, 0.5, 0),
 	float3(0, 0, 0.5),
 	float3(0.5, 0, 0.5),
 	float3(0, 0.5, 0.5),
@@ -39,12 +39,12 @@ struct AABB {
 bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 {
 	float3 invR = 1.0 / r.direction;
-	float3 tbot = invR * (aabb.Min - r.origin);
-	float3 ttop = invR * (aabb.Max - r.origin);
-	float3 tmin = min(ttop, tbot);
-	float3 tmax = max(ttop, tbot);
-	float2 t = max(tmin.xx, tmin.yz);
-	t0 = max(t.x, t.y);
+		float3 tbot = invR * (aabb.Min - r.origin);
+		float3 ttop = invR * (aabb.Max - r.origin);
+		float3 tmin = min(ttop, tbot);
+		float3 tmax = max(ttop, tbot);
+		float2 t = max(tmin.xx, tmin.yz);
+		t0 = max(t.x, t.y);
 	t = min(tmax.xx, tmax.yz);
 	t1 = min(t.x, t.y);
 	return t0 <= t1;
@@ -98,22 +98,22 @@ bool hitbox(Ray r, float3 m1, float3 m2, out float tmin, out float tmax)
 }
 
 /* Check if node has child at specified index
-	#param:
-	*_nodePtr: node index address
-	*_index: node child index (by morton order)
-	#return:
-	*true IF child indicator bit set
-	#false IF else */
+#param:
+*_nodePtr: node index address
+*_index: node child index (by morton order)
+#return:
+*true IF child indicator bit set
+#false IF else */
 bool HasChildAtIndex(const in uint _nodePtr, const in uint _index)
 {
 	return 1 == ((Nodes[_nodePtr].children >> _index) & ((1 << 1) - 1));
 }
 
 /* Check the amount of children of a node
-	#param: 
-	*_nodePtr: node index address
-	#return:
-	*all set child indicator bits in descriptor (maximum: 8) */
+#param:
+*_nodePtr: node index address
+#return:
+*all set child indicator bits in descriptor (maximum: 8) */
 uint CountChildren(const in uint _nodePtr)
 {
 	// count set bits in the first 8 bits of the child-descriptor
@@ -121,23 +121,23 @@ uint CountChildren(const in uint _nodePtr)
 }
 
 /* Get child pointer address
-	#param:
-	*_nodePtr: node index address
-	*_index: node child index (by morton order)
-	#return:
-	*base index + child offset */
+#param:
+*_nodePtr: node index address
+*_index: node child index (by morton order)
+#return:
+*base index + child offset */
 uint GetChildAddress(const in uint _nodePtr, const in uint _index)
 {
 	// return Node::basePtr + 3 offset bits @ Node::children[8 + 3 * _index];
 	return Nodes[_nodePtr].basePtr + (Nodes[_nodePtr].children >> (8 + 3 * _index) & ((1 << 3) - 1));
 }
 
-/* Check if node is leaf 
-	#param:
-	*_nodePtr: node index address
-	#return:
-	*true IF no children
-	*false IF else */
+/* Check if node is leaf
+#param:
+*_nodePtr: node index address
+#return:
+*true IF no children
+*false IF else */
 bool IsLeaf(const in uint _nodePtr)
 {
 	// compare zero to bitwise AND of the first 8 bits in child-descriptor
@@ -147,14 +147,14 @@ bool IsLeaf(const in uint _nodePtr)
 bool Intersect(Ray _ray, AABB _box, out float3 _intersectionPoint)
 {
 	float3 tmin = (_box.Min - _ray.origin) / _ray.direction;
-	float3 tmax = (_box.Max - _ray.origin) / _ray.direction;
+		float3 tmax = (_box.Max - _ray.origin) / _ray.direction;
 
-	_intersectionPoint = min(tmin, tmax);
+		_intersectionPoint = min(tmin, tmax);
 
 	float3 real_min = min(tmin, tmax);
-	float3 real_max = max(tmin, tmax);
+		float3 real_max = max(tmin, tmax);
 
-	float minmax = min(min(real_max.x, real_max.y), real_max.z);
+		float minmax = min(min(real_max.x, real_max.y), real_max.z);
 	float maxmin = max(max(real_min.x, real_min.y), real_min.z);
 
 	return (minmax >= maxmin);
@@ -163,8 +163,8 @@ bool Intersect(Ray _ray, AABB _box, out float3 _intersectionPoint)
 float EuclideanDistance(in float3 _ro, in float3 _no)
 {
 	return sqrt((_ro.x - _no.x) * (_ro.x - _no.x) +
-				(_ro.y - _no.y) * (_ro.y - _no.y) +
-				(_ro.z - _no.z) * (_ro.z - _no.z));
+		(_ro.y - _no.y) * (_ro.y - _no.y) +
+		(_ro.z - _no.z) * (_ro.z - _no.z));
 }
 
 // svo iterative traversal - not working as of now, needs to be re-written
@@ -179,7 +179,7 @@ void Traverse(Ray _ray, uint2 pixelId)
 
 	float tnear, tfar;
 	uint rColorId = Nodes[rootIndex].level;
-//	uint colorId = Nodes[nodePtr].level;
+	//	uint colorId = Nodes[nodePtr].level;
 
 	int count = 0;
 
@@ -228,15 +228,15 @@ void Traverse(Ray _ray, uint2 pixelId)
 					float3 p = box.Max - box.Min / 2;
 
 						float d = 0;
-						if (d = EuclideanDistance(_ray.origin, p) < minDist)
-						{ 
-							minDist = d;
-							writeBuffer[pixelId] = colors[colorId];
-							
-						}
+					if (d = EuclideanDistance(_ray.origin, p) < minDist)
+					{
+						minDist = d;
+						writeBuffer[pixelId] = colors[colorId];
+
+					}
 
 					//if(!DrawCube(_ray, box, pixelId))
-						//writeBuffer[pixelId] = colors[colorId];
+					//writeBuffer[pixelId] = colors[colorId];
 
 					//return;
 				}
@@ -256,7 +256,7 @@ void Traverse(Ray _ray, uint2 pixelId)
 						nodePtr = GetChildAddress(nodePtr, i);	// current node is child[i]
 
 						box.Min = box.Min + minoff[i] * float3(dim, dim, dim);
-						box.Max = box.Min + float3(hdim,hdim,hdim);
+						box.Max = box.Min + float3(hdim, hdim, hdim);
 
 
 						break;
@@ -295,26 +295,26 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 	}
 
 	float y = -float(2.f * threadId.y + 1.f - resHeight) * (1.f / (float)resHeight);
-	float x =  float(2.f * threadId.x + 1.f - resWidth)  * (1.f / (float)resWidth);
-	float z =1; //2.0f;
+	float x = float(2.f * threadId.x + 1.f - resWidth)  * (1.f / (float)resWidth);
+	float z = 2.0f;
 
 	// Create new ray from the camera position to the pixel position
 	Ray ray;
-	float4 aux = (mul(float4(0, 0, 0, 1.f), g_mInverse));
-	ray.origin = aux.xyz / aux.w;
+	float4 aux = (mul(float4(0, 0, 0, 1.f), g_ViewInverse));
+		ray.origin = aux.xyz / aux.w;
 
 	float tnear, tfar;
 
 	// create ray direction from pixelposition in world space
-	float3 pixelPosition = mul(float4(x, y, z, 1.f), g_mInverse).xyz;
-	ray.direction = normalize(pixelPosition - ray.origin);
+	float3 pixelPosition = mul(float4(x, y, z, 1.f), g_ViewInverse).xyz;
+		ray.direction = normalize(pixelPosition - ray.origin);
 
 	uint nodeptr = rootIndex;
 
 	AABB aabb;
 	aabb.Min = float3(0,0,0);
 	aabb.Max = float3(gridLength, gridLength, gridLength);
-
+	aabb.Max = mul(float4(aabb.Max, 1), g_mWorld).xyz;
 	// check if the ray intersect the root AABB
 	// if not: quit
 	// else continue with further checks

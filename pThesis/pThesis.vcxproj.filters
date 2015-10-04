@@ -49,9 +49,6 @@
     <Filter Include="Header Files\Render\Shaders">
       <UniqueIdentifier>{2407ebb1-edac-4638-9e44-aeff5768f4c0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics">
-      <UniqueIdentifier>{4cd9695b-fa66-4267-86f3-cf9f4c6b8abb}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CoreSystems\Window.cpp">
@@ -212,20 +209,14 @@
     <ClInclude Include="Render\RayCaster.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="..\URD\URD\API\URDAPI.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\URD\URD\API\URDInterface.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\URD\URD\Core\D3DGraphics.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Render\RenderTarget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Render\BackBufferRender.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\FW1FontWrapper.h">
+      <Filter>Header Files\3rd Party</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -7,6 +7,8 @@
 #include "../Render/ShaderInputFormats.h"
 #include "../Global/TimerQPC.h"
 
+#include <sstream>
+
 #define RES_WIDTH	1280
 #define RES_HEIGHT	720
 
@@ -40,7 +42,7 @@ bool VoxelApp::VInit()
 	if (!m_pDriver || !m_pDriver->Init(VGetResolution()))
 		return false;
 	else printf("DirectX driver ok/DirectX\n");
-	
+
 	m_eRenderType = RENDER_TYPE::RT_Debug;
 	SetRenderType(m_eRenderType);
 	m_cullMode = D3D11_CULL_NONE;
@@ -55,29 +57,29 @@ bool VoxelApp::VInit()
 	rti.formats = RTFS_SHADER_RESOURCE | RTFS_TEXTURE | RTFS_UNORDERED_ACCESS;
 
 	// texture
-	rti.TexDesc.Width				= VGetResolution().width;
-	rti.TexDesc.Height				= VGetResolution().height;
-	rti.TexDesc.MipLevels			= 1;
-	rti.TexDesc.ArraySize			= 1;
-	rti.TexDesc.Format				= DXGI_FORMAT_R32G32B32A32_FLOAT;
-	rti.TexDesc.SampleDesc.Count	= 1;
-	rti.TexDesc.Usage				= D3D11_USAGE_DEFAULT;
-	rti.TexDesc.BindFlags			= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-	rti.TexDesc.CPUAccessFlags		= 0;
-	rti.TexDesc.MiscFlags			= 0;
+	rti.TexDesc.Width = VGetResolution().width;
+	rti.TexDesc.Height = VGetResolution().height;
+	rti.TexDesc.MipLevels = 1;
+	rti.TexDesc.ArraySize = 1;
+	rti.TexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rti.TexDesc.SampleDesc.Count = 1;
+	rti.TexDesc.Usage = D3D11_USAGE_DEFAULT;
+	rti.TexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	rti.TexDesc.CPUAccessFlags = 0;
+	rti.TexDesc.MiscFlags = 0;
 	// view
-	rti.RTVDesc.Format				= rti.TexDesc.Format;
-	rti.RTVDesc.ViewDimension		= D3D11_RTV_DIMENSION_TEXTURE2D;
-	rti.RTVDesc.Texture2D.MipSlice	= 0;
+	rti.RTVDesc.Format = rti.TexDesc.Format;
+	rti.RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rti.RTVDesc.Texture2D.MipSlice = 0;
 	// resource
-	rti.SRVDesc.Format						= rti.TexDesc.Format;
-	rti.SRVDesc.ViewDimension				= D3D11_SRV_DIMENSION_TEXTURE2D;
-	rti.SRVDesc.Texture2D.MostDetailedMip	= 0;
-	rti.SRVDesc.Texture2D.MipLevels			= 1;
+	rti.SRVDesc.Format = rti.TexDesc.Format;
+	rti.SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	rti.SRVDesc.Texture2D.MostDetailedMip = 0;
+	rti.SRVDesc.Texture2D.MipLevels = 1;
 	// unordered access
-	rti.UAVDesc.Format				= DXGI_FORMAT_UNKNOWN;
-	rti.UAVDesc.ViewDimension		= D3D11_UAV_DIMENSION_TEXTURE2D;
-	rti.UAVDesc.Texture2D.MipSlice	= 0;
+	rti.UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+	rti.UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	rti.UAVDesc.Texture2D.MipSlice = 0;
 
 	// rendertarget: Color = {view, shader resource, unordered access}
 	if (false == m_pDriver->CreateRenderTarget(RT_COLOR, rti, m_pRenderTargets[0]))
@@ -149,7 +151,7 @@ bool VoxelApp::VInit()
 		return false;
 
 	printf("/User\n");
-	
+
 	printf("--- SVO ---\n");
 
 	std::ifstream svoStream("master64.txt");
@@ -181,7 +183,7 @@ bool VoxelApp::VInit()
 	else printf("Sparse Voxel Octree ok\n");
 
 	std::vector<GPU_Voxel<NC>> voxs;
-	
+
 	GPU_Node* root = &m_svo.GetRoot();
 
 	m_svo.GetSVO(*root, voxs);
@@ -189,7 +191,7 @@ bool VoxelApp::VInit()
 	double iso = 0.5;
 	std::vector<Vertex> vertices;
 	CELL cs;
-	m_svo.GetCell(*root, cs,0);
+	m_svo.GetCell(*root, cs, 0);
 	int N = 0;
 
 	for (CELL& c : m_svo.cells)
@@ -214,7 +216,7 @@ bool VoxelApp::VInit()
 		return false;
 	}
 
-	
+
 
 	m_pDebugVBuffer = VNEW D3DBuffer();
 	if (!m_pDebugVBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_VERTEX, vertices.size(), sizeof(Vertex), &vertices[0]))
@@ -227,7 +229,7 @@ bool VoxelApp::VInit()
 
 	uint32_t gridLength = m_svo.m_svoLoader.m_header.gridlength;
 	uint32_t rootPtr = m_svo.m_svoLoader.m_nodes.size() - 1;
-	
+
 	//m_camera.SetPositionAndView(maxX * 0.5f, minY + 256.f, maxZ * 0.5f, 0, 90);
 	m_camera.SetPositionAndView(128, 256, -128, 0, 45);
 	m_camera.Update(Time());
@@ -281,10 +283,10 @@ bool VoxelApp::VInit()
 	printf("/SVO\n");
 
 	/* Volume */
-	cbVoxel.numNodes	= m_svo.m_svoLoader.m_header.numNodes;
-	cbVoxel.rootIndex	= m_svo.m_svoLoader.m_nodes.size() - 1;
-	cbVoxel.gridLength	= m_svo.m_svoLoader.m_header.gridlength;
-	cbVoxel.rootDepth	= m_svo.m_svoLoader.m_header.numLevels;
+	cbVoxel.numNodes = m_svo.m_svoLoader.m_header.numNodes;
+	cbVoxel.rootIndex = m_svo.m_svoLoader.m_nodes.size() - 1;
+	cbVoxel.gridLength = m_svo.m_svoLoader.m_header.gridlength;
+	cbVoxel.rootDepth = m_svo.m_svoLoader.m_header.numLevels;
 
 	if (FAILED(m_pDriver->MapSubResource(m_pVoxelCB->GetResource(), cbVoxel)))
 	{
@@ -293,7 +295,7 @@ bool VoxelApp::VInit()
 	}
 
 	/* Window */
-	cbWindow.width  = VGetResolution().width;
+	cbWindow.width = VGetResolution().width;
 	cbWindow.height = VGetResolution().height;
 
 	if (FAILED(m_pDriver->MapSubResource(m_pWindowCB->GetResource(), cbWindow)))
@@ -305,7 +307,7 @@ bool VoxelApp::VInit()
 	/* Eval */
 	cbEval.depthDivider = 1000;
 	cbEval.NLoD = 1;
-	
+
 	if (FAILED(m_pDriver->MapSubResource(m_pEvalCB->GetResource(), cbEval)))
 	{
 		PrintError(AT, "failed to map subresource");
@@ -317,6 +319,23 @@ bool VoxelApp::VInit()
 	ID3D11UnorderedAccessView * uavs[] = { m_pVoxelBuffer->GetUAV(), m_pNodeBuffer->GetUAV() };
 	m_pDriver->GetContext()->CSSetUnorderedAccessViews(0, 2, uavs, &initialCounts);
 
+	// create font renderer
+	IFW1Factory* fw1Factory;
+
+	if (FAILED(FW1CreateFactory(FW1_VERSION, &fw1Factory)))
+	{
+		PrintError(AT, "failed to create font factory");
+		return false;
+	}
+
+	if (FAILED(fw1Factory->CreateFontWrapper(m_pDriver->GetDevice(), L"Times New Roman", &m_pFontWrapper)))
+	{
+		PrintError(AT, "failed to create font wrapper");
+		return false;
+	}
+
+	fw1Factory->Release();
+
 #ifdef FDEBUG
 	printf("Appliction: Ok\n");
 #endif
@@ -326,9 +345,27 @@ bool VoxelApp::VInit()
 
 static bool toggleFill = false;
 static bool toggleCull = false;
+static bool toggleMove = true;
+static int count;
+static int fps;
+static float cMS;
+static float oMS;
+static float movespeed = 1000;
 
 bool VoxelApp::VFrame(Time time)
 {
+
+	count++;
+	cMS += (time.dtMS / 1000.f);
+
+
+	if (cMS >= (oMS + 0.0001f))
+	{
+		fps = count;
+		count = 0;
+		oMS = cMS;
+	}
+
 	HRESULT hr = S_OK;
 
 	if (m_pInput->VIsKeyDown(VK_ESCAPE))
@@ -338,51 +375,73 @@ bool VoxelApp::VFrame(Time time)
 	}
 
 	/* Update Camera */
-	m_pInput->VIsKeyDown('W') ? m_camera.SetMovementToggle(0,  1) : m_camera.SetMovementToggle(0, 0);
+	m_pInput->VIsKeyDown('W') ? m_camera.SetMovementToggle(0, 1) : m_camera.SetMovementToggle(0, 0);
 	m_pInput->VIsKeyDown('A') ? m_camera.SetMovementToggle(2, -1) : m_camera.SetMovementToggle(2, 0);
 	m_pInput->VIsKeyDown('S') ? m_camera.SetMovementToggle(1, -1) : m_camera.SetMovementToggle(1, 0);
-	m_pInput->VIsKeyDown('D') ? m_camera.SetMovementToggle(3,  1) : m_camera.SetMovementToggle(3, 0);
+	m_pInput->VIsKeyDown('D') ? m_camera.SetMovementToggle(3, 1) : m_camera.SetMovementToggle(3, 0);
 
-	//if (m_pInput->VIsKeyDown('1'))
-	//	SetRenderType(RENDER_TYPE::RT_Rasterizer);
-	//else if (m_pInput->VIsKeyDown('2'))
-	//	SetRenderType(RENDER_TYPE::RT_Raytracer);
-	//else if (m_pInput->VIsKeyDown('3'))
-	//	SetRenderType(RENDER_TYPE::RT_Debug);
 
-	//if (!m_pInput->VIsKeyDown(VK_F1) && toggleCull)
-	//	ToggleCullMode();
-	//if (!m_pInput->VIsKeyDown(VK_F2) && toggleFill)
-	//	ToggleFillMode();
+	const float movespeedIncr = 100.f;
 
-	//toggleCull = m_pInput->VIsKeyDown(VK_F1);
-	//toggleFill = m_pInput->VIsKeyDown(VK_F2);
+	if (m_pInput->VIsKeyDown(VK_ADD) && toggleMove)
+	{
+		m_camera.SetMovementSpeed(movespeed += movespeedIncr);
+		toggleMove = false;
+	}
+	if (m_pInput->VIsKeyDown(VK_SUBTRACT) && toggleMove)
+	{
+		m_camera.SetMovementSpeed(movespeed -= movespeedIncr);
+		toggleMove = false;
+	}
+
+	if (!m_pInput->VIsKeyDown(VK_ADD) && !m_pInput->VIsKeyDown(VK_SUBTRACT))
+	{
+		toggleMove = true;
+	}
 
 	/* Mouse Look */
 	if (m_pInput->MouseMoved())
 	{
-		const float lookBase = 0.25f;
+		const float lookBase = 10.25f;
 		const float lookSpeed = lookBase * time.dtMS;
 		m_camera.AdjustHeadingPitch(m_pInput->m_mousePoint.x * lookSpeed, m_pInput->m_mousePoint.y * lookSpeed);
-	}		
-	else m_camera.AdjustHeadingPitch(0,0);
-	
+	}
+	else m_camera.AdjustHeadingPitch(0, 0);
+
 	m_camera.Update(time);
 
-	//m_pCuller->Construct(100, TMatrixTranspose(projection), TMatrixTranspose(view));	// unused at the moment
+	//m_pCuller->Construct(100, TMatrixTranspose(m_camera.GetProjectionMatrix()), TMatrixTranspose(m_camera.GetViewMatrix()));	// unused at the moment
+
+	if (FAILED(hr))
+	{
+		PrintError(AT, "failed to map subresource");
+	}
 
 	/**********************
 	--- Update cbuffers ---
 	***********************/
 	/* Camera */
-	cbCamera.mWVP		= m_camera.GetVPMatrix();
-	cbCamera.mView		= m_camera.GetViewMatrix();
-	cbCamera.mProjection= m_camera.GetProjectionMatrix();
-	cbCamera.mWorld		= m_camera.GetInverseMatrix();		// note: give inverse it's own element in cbuffer
-	cbCamera.cameraPos  = m_camera.GetPosition();
-	cbCamera.cameraDir  = m_camera.GetEyeDir();
-	cbCamera.right		= m_camera.GetRight();
-	cbCamera.up			= m_camera.GetUp();
+	FMAT4X4 world;
+	TMatrixIdentity(world);
+
+	cbCamera.mWVP				= m_camera.GetVPMatrix();
+	cbCamera.mView				= m_camera.GetViewMatrix();
+	cbCamera.mProjection		= m_camera.GetProjectionMatrix();
+	cbCamera.mWorld				= world;
+	cbCamera.cameraPos			= m_camera.GetPosition();
+	cbCamera.cameraDir			= m_camera.GetEyeDir();
+	cbCamera.right				= m_camera.GetRight();
+	cbCamera.up					= m_camera.GetUp();
+	cbCamera.mViewInverse		= m_camera.m_inverseViewMatrix;
+	cbCamera.mProjectionInverse = m_camera.m_inverseProjectionMatrix;
+	cbCamera.mWVPInverse		= m_camera.m_inverseWVP;
+	cbCamera.mRotation			= m_camera.m_rotationMatrix;
+
+	//	FMAT4X4	m_rotationMatrix;
+	//FMAT4X4 m_inverseViewMatrix;
+	//FMAT4X4 m_inverseProjectionMatrix;
+	//FMAT4X4 m_inverseWVP;
+	//FMAT4X4	m_viewProjectionMatrix;
 
 	hr = m_pDriver->MapSubResource(m_pCameraCB->GetResource(), cbCamera);
 	if (FAILED(hr))
@@ -396,9 +455,11 @@ bool VoxelApp::VFrame(Time time)
 	m_pDriver->GetContext()->GSSetConstantBuffers(0, 2, cbuffers);
 	m_pDriver->GetContext()->PSSetConstantBuffers(0, 2, cbuffers);
 	m_pDriver->GetContext()->CSSetConstantBuffers(0, 3, cbuffers);
-	
+
 	/* Draw */
 	m_pDriver->BeginScene();
+
+
 
 	// rasterize deferred
 	m_pDebugRenderer->VDraw(m_pDriver, m_pDebugVBuffer, m_pTerrainIBuffer);
@@ -407,6 +468,24 @@ bool VoxelApp::VFrame(Time time)
 
 	// finalize deferred by merging the different targets
 	m_pBackBufferDeferred->VDraw(m_pDriver, nullptr);
+
+	FVEC3 cpos = m_camera.GetPosition();
+	FVEC3 cdir = m_camera.GetEyeDir();
+
+	std::wostringstream woss;
+	woss << "Camera::Position = " << cpos.x << ":" << cpos.y << ":" << cpos.z << "\n" << "Camera::Direction = " << cdir.x << ":" << cdir.y << ":" << cdir.z << "\nCamera::Speed = " << m_camera.GetMovementSpeed();
+	std::wstring ctext = woss.str();
+
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), ctext.c_str(), 14.f, 10, 10, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);
+
+	std::wostringstream foss;
+	foss << "FPS = " << fps;
+	std::wstring uitext = foss.str();
+
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), uitext.c_str(), 14.f, 10, 60, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);
+
+	//ID3D11RenderTargetView* empty = nullptr;
+	//m_pDriver->SetRenderTargets(&empty, 1);
 
 	return m_pDriver->EndScene();
 }
@@ -442,7 +521,7 @@ void VoxelApp::SetRenderType(RENDER_TYPE _renderType)
 
 	m_eRenderType = _renderType;
 	static const char* types[] = { "Rasterizer", "Raytracer", "Debug" };
-	
+
 }
 
 // some weird bug that keeps culling until toggled once - fix!

@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
 	//_CrtDumpMemoryLeaks();			// lots of memory leaking that needs to be cleaned up
 	//printf("\n/memory dump\n");
 
+	Sleep(5000);
+
 	return retval;
 }
 

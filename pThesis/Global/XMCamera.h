@@ -12,9 +12,7 @@ private:
 
 	FMAT4X4	m_viewMatrix;
 	FMAT4X4	m_projectionMatrix;
-	FMAT4X4	m_rotationMatrix;
-	FMAT4X4 m_inverseMatrix;
-	FMAT4X4	m_viewProjectionMatrix;
+
 
 	float m_roll;
 	float m_pitch;
@@ -25,6 +23,11 @@ private:
 
 protected:
 public:
+	FMAT4X4	m_rotationMatrix;
+	FMAT4X4 m_inverseViewMatrix;
+	FMAT4X4 m_inverseProjectionMatrix;
+	FMAT4X4 m_inverseWVP;
+	FMAT4X4	m_viewProjectionMatrix;
 
 private:
 	void UpdateView();
@@ -43,9 +46,12 @@ public:
 	void SetMovementToggle(int i, int v);
 	void AdjustHeadingPitch(float hRad, float pRad);
 
+	void SetMovementSpeed(const float _unitsPerMS);
+	float GetMovementSpeed(void) { return movementSpeed; }
+
 	FMAT4X4 GetViewMatrix()			const { return m_viewMatrix; }
 	FMAT4X4 GetProjectionMatrix()	const { return m_projectionMatrix; }
-	FMAT4X4 GetInverseMatrix()		const { return m_inverseMatrix; }
+	FMAT4X4 GetInverseMatrix()		const { return m_inverseViewMatrix; }
 	FMAT4X4 GetVPMatrix()			const { return m_viewProjectionMatrix; }
 	FVEC3	GetPosition()			const { return m_position; }
 	FVEC3	GetEyeDir()				const { return m_forward; }

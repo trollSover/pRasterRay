@@ -135,8 +135,8 @@ void BackBufferRender::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _i
 	ID3D11ShaderResourceView* empties[RENDERTARGET_COUNT] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(3, RENDERTARGET_COUNT, empties);
 
-	ID3D11RenderTargetView* empty = nullptr;
-	_driver->SetRenderTargets(&empty, 1);
+	//ID3D11RenderTargetView* empty = nullptr;
+	//_driver->SetRenderTargets(&empty, 1);
 	//_driver->SetZBufferOn();
 }
 

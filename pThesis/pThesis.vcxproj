@@ -71,7 +71,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>../lib/DirectXTex/lib/x64;$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x86;$(LibraryPath)</LibraryPath>
+    <LibraryPath>../lib/DirectXTex/lib/x86;$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -163,9 +163,6 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\URD\URD\API\URDAPI.h" />
-    <ClInclude Include="..\URD\URD\API\URDInterface.h" />
-    <ClInclude Include="..\URD\URD\Core\D3DGraphics.h" />
     <ClInclude Include="Application\DebugRenderer.h" />
     <ClInclude Include="Application\MarchingCubes.h" />
     <ClInclude Include="Application\ModelLoader.h" />
@@ -186,6 +183,7 @@
     <ClInclude Include="Global\SimpleInput.h" />
     <ClInclude Include="Global\TimerQPC.h" />
     <ClInclude Include="Global\XMCamera.h" />
+    <ClInclude Include="include\FW1FontWrapper.h" />
     <ClInclude Include="include\WICTextureLoader.h" />
     <ClInclude Include="Render\BackBufferRender.h" />
     <ClInclude Include="Render\Buffer.h" />

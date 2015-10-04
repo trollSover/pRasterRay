@@ -47,6 +47,12 @@ using namespace VECTOR;
 #pragma comment (lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
+#ifdef _WIN64
+#pragma comment(lib, "lib/FW1FontWrapper_1_1/x64/FW1FontWrapper.lib")
+#elif _WIN32
+#pragma comment(lib, "FW1FontWrapper_1_1/x86/FW1FontWrapper.lib")
+#endif
+
 using namespace DirectX;
 
 /**************
@@ -83,11 +89,20 @@ struct CBDCamera
 	FMAT4X4 mView;			// 64
 	FMAT4X4 mProjection;	// 64
 	FMAT4X4 mWorld;			// 64
+
+	FMAT4X4 mViewInverse;
+	FMAT4X4 mProjectionInverse;
+	FMAT4X4 mWVPInverse;
+	FMAT4X4 mRotation;
+
 	FVEC3	cameraPos;		// 12
 	FVEC3	cameraDir;		// 12
 	FVEC3	right;			// 12
 	FVEC3	up;				// 12
-};							// = 304
+
+
+
+};							// = 512					// = 304
 
 struct CBDVoxel
 {

@@ -74,6 +74,8 @@ void Core::Run()
 
 	while (run)
 	{
+		m_pTimer->VUpdate();
+
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -94,8 +96,7 @@ void Core::Run()
 				{
 					PrintError(AT, "error encountered during rendering - shutting down");
 				}			
-			}
-			m_pTimer->VUpdate();
+			}			
 		}	
 	}
 }

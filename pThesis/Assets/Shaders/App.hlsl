@@ -1,5 +1,5 @@
 /*
-	--- APP.HLSL ---
+--- APP.HLSL ---
 */
 
 static const float3 LightDir = float3(0.5, -1, 0);
@@ -12,12 +12,20 @@ cbuffer cbCamera : register(b0)
 	float4x4 g_mWVP;		// 64
 	float4x4 g_mView;		// 64
 	float4x4 g_mProjection;	// 64
-	float4x4 g_mInverse;	// 64
+	float4x4 g_mWorld;	// 64
+
+	float4x4 g_ViewInverse;
+	float4x4 g_ProjectionInverse;
+	float4x4 g_WVPInverse;
+	float4x4 g_Rotation;
+
 	float3	 g_cameraPos;	// 12
 	float3	 g_cameraDir;	// 12
 	float3	 g_right;			// 12
 	float3	 g_up;			// 12
-};							// = 304 bytes
+
+
+};							// = 512 bytes
 
 cbuffer cbResolution : register(b1)
 {
@@ -109,19 +117,19 @@ float3 MortonDecode(uint morton)
 		x |= ((morton & (uint(1) << uint((3 * i) + 0))) >> uint(((3 * i) + 0) - i));
 		y |= ((morton & (uint(1) << uint((3 * i) + 1))) >> uint(((3 * i) + 1) - i));
 		z |= ((morton & (uint(1) << uint((3 * i) + 2))) >> uint(((3 * i) + 2) - i));
-	}	
+	}
 	return float3(x, y, z);
 }
 
 bool IntersectAABB(const float3 _rayOrigin, const float3 _rayDirection, out float _min, out float _max)
 {
-	/* source : http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm 
-		slab intersection of AABB
+	/* source : http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+	slab intersection of AABB
 	*/
 
 	const float dim = 16.f;
-	float near		= -10000000.0f;
-	float far		=  10000000.0f;
+	float near = -10000000.0f;
+	float far = 10000000.0f;
 
 	float t1, t2;
 	t1 = t2 = 0;

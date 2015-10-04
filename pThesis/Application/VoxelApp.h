@@ -17,6 +17,8 @@
 
 #include "../Render/RenderTarget.h"
 
+#include "../include/FW1FontWrapper.h"
+
 //static const int RENDERTARGET_COUNT = 3;
 
 enum RENDER_TYPE
@@ -74,6 +76,8 @@ private:
 
 	D3D11_FILL_MODE m_fillMode;
 	D3D11_CULL_MODE	m_cullMode;
+
+	IFW1FontWrapper* m_pFontWrapper;
 
 protected:
 public:
