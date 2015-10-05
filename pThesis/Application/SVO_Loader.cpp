@@ -89,8 +89,10 @@ bool SVO_Loader::VLoad(const std::string& _file)
 		lCount[i] = 0;
 
 	Node<NC> nIn;
+	GPU_Node gpn;
 	for (size_t i = 0; i < m_header.numNodes; ++i)
 	{
+
 		ReadNode(nodeIn, nIn);
 		nIn.level = (nLevels-1) - nIn.level;
 
@@ -99,15 +101,43 @@ bool SVO_Loader::VLoad(const std::string& _file)
 		assert(nIn.level >= 0 && nIn.level < nLevels);
 		lCount[nIn.level]++;
 
-		testNodes.push_back(nIn);
+		//testNodes.push_back(nIn);
+		if (i == (m_header.numNodes - 1))
+		{
+			int a = 42;
+			gpn = GPU_Node(nIn);
+		}
 	}
+
+	TNode* rt = &m_nodes[m_header.numNodes - 1];
+
+	//for (int i = 0; i < 8; ++i)
+	//{
+	//	if (rt->HasChildAtIndex(i))
+	//	{
+	//		printf("---TNode---\n");
+	//		TNode* n = &m_nodes[rt->GetChildAddress(i)];
+	//		printf("parent address to %i == %i\n", i, rt->GetChildAddress(i));
+	//		printf("child[%i] address: %i = %s\n", i, n->basePtr, n->IsLeaf() == true ? "is leaf" : "not leaf");
+	//	}
+	//	else printf("---no TNode---\n");
+	//	if (gpn.HasChild(i))
+	//	{
+	//		printf("---GPUNode---\n");
+	//		TNode tn = m_nodes[gpn.GetChildAddress(i)];
+	//		printf("parent address to %i == %i\n", i, gpn.GetChildAddress(i));
+	//		printf("child[%i] address: %i = %s\n", i, tn.basePtr, tn.IsLeaf() == true ? "is leaf" : "not leaf");
+	//	}
+	//	else printf("---no GPUNode---\n");
+
+	//}
 
 	for (int i = 0; i < nLevels; ++i)
 	{
 		printf("level: %i = %i nodes\n", i, lCount[i]);
 	}
 
-	int nsize = sizeof(GPU_Node);
+	int nsize = sizeof(TNode);
 
 	printf("nodes: %i\nvoxels: %i\n", m_nodes.size(), m_voxels.size());
 
@@ -128,7 +158,7 @@ bool SVO_Loader::VLoad(const std::string& _file)
 
 	uint32_t mort = MATH::mortonEncode_LUT(x, y, z);
 
-	TNode currentNode = testNodes[testNodes.size() - 1];
+	TNode currentNode = m_nodes[m_nodes.size() - 1];
 	int child = 0;
 	//while (true)
 	{

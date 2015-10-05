@@ -19,7 +19,7 @@ PS_INPUT main(VS_INPUT input, uint vertexId : SV_VERTEXID)
 {
 	PS_INPUT output;
 
-	output.position	= mul(float4(input.position, 1), g_mWVP);
+	output.position	= mul(float4(input.position, 1), g_WVP);
 	output.wposition = float4(input.position,1);
 	output.normal	= normalize(input.normal);
 	output.color	= input.color;

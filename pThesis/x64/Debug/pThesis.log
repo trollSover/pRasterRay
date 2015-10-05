@@ -1,4 +1,4 @@
-﻿Build started 2015-10-04 21:41:00.
+﻿Build started 2015-10-06 00:10:43.
      1>Project "F:\Program\Git\pRasterRay\pThesis\pThesis.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\MSVS\VS 2013\VC\bin\x86_amd64\CL.exe /c /IF:\Program\Git\pRasterRay\pThesis\include /Zi /nologo /W3 /WX- /sdl /Od /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /Gd /TP /errorReport:prompt Application\VoxelApp.cpp
@@ -8,16 +8,16 @@
      1>f:\program\git\prasterray\pthesis\application\MarchingCubes.h(386): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
      1>f:\program\git\prasterray\pthesis\application\SVO.h(178): warning C4129: ' ' : unrecognized character escape sequence
      1>Application\VoxelApp.cpp(175): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
-     1>Application\VoxelApp.cpp(231): warning C4267: 'initializing' : conversion from 'size_t' to 'uint32_t', possible loss of data
-     1>Application\VoxelApp.cpp(238): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
-     1>Application\VoxelApp.cpp(287): warning C4267: '=' : conversion from 'size_t' to 'uint32_t', possible loss of data
+     1>Application\VoxelApp.cpp(232): warning C4267: 'initializing' : conversion from 'size_t' to 'uint32_t', possible loss of data
+     1>Application\VoxelApp.cpp(240): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
+     1>Application\VoxelApp.cpp(289): warning C4267: '=' : conversion from 'size_t' to 'uint32_t', possible loss of data
      1>f:\program\git\prasterray\pthesis\coresystems\../Utils/Vector_Util.h(118): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
                  f:\program\git\prasterray\pthesis\coresystems\../Utils/Vector_Util.h(118) : while compiling class template member function 'VECTOR::VEC3<float> VECTOR::VEC3<float>::operator /(const T &)'
                  with
                  [
                      T=float
                  ]
-                 Application\VoxelApp.cpp(238) : see reference to function template instantiation 'VECTOR::VEC3<float> VECTOR::VEC3<float>::operator /(const T &)' being compiled
+                 Application\VoxelApp.cpp(240) : see reference to function template instantiation 'VECTOR::VEC3<float> VECTOR::VEC3<float>::operator /(const T &)' being compiled
                  with
                  [
                      T=float
@@ -25,26 +25,26 @@
                  f:\program\git\prasterray\pthesis\coresystems\CoreStd.h(98) : see reference to class template instantiation 'VECTOR::VEC3<float>' being compiled
      1>f:\program\git\prasterray\pthesis\application\SVO.h(46): warning C4267: 'initializing' : conversion from 'size_t' to 'uint32_t', possible loss of data
                  f:\program\git\prasterray\pthesis\application\SVO.h(40) : while compiling class template member function 'bool SparseVoxelOctree<VOXEL::NC>::CreateSVO(const std::string &)'
-                 Application\VoxelApp.cpp(181) : see reference to function template instantiation 'bool SparseVoxelOctree<VOXEL::NC>::CreateSVO(const std::string &)' being compiled
+                 Application\VoxelApp.cpp(182) : see reference to function template instantiation 'bool SparseVoxelOctree<VOXEL::NC>::CreateSVO(const std::string &)' being compiled
                  f:\program\git\prasterray\pthesis\application\VoxelApp.h(70) : see reference to class template instantiation 'SparseVoxelOctree<VOXEL::NC>' being compiled
      1>f:\program\git\prasterray\pthesis\application\SVO.h(54): warning C4018: '<' : signed/unsigned mismatch
      1>f:\program\git\prasterray\pthesis\application\SVO.h(58): warning C4018: '<' : signed/unsigned mismatch
      1>f:\program\git\prasterray\pthesis\application\SVO.h(74): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
      1>f:\program\git\prasterray\pthesis\application\SVO.h(75): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
      1>f:\program\git\prasterray\pthesis\application\SVO.h(121): warning C4244: 'argument' : conversion from 'uint64_t' to 'uint32_t', possible loss of data
-                 f:\program\git\prasterray\pthesis\application\SVO.h(114) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::GPU_Node &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)'
+                 f:\program\git\prasterray\pthesis\application\SVO.h(114) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::TNode &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)'
                  with
                  [
                      _Ty=VOXEL::GPU_Voxel<VOXEL::NC>
                  ]
-                 Application\VoxelApp.cpp(189) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::GPU_Node &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)' being compiled
+                 Application\VoxelApp.cpp(190) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetSVO(VOXEL::TNode &,std::vector<VOXEL::GPU_Voxel<VOXEL::NC>,std::allocator<_Ty>> &,int)' being compiled
                  with
                  [
                      _Ty=VOXEL::GPU_Voxel<VOXEL::NC>
                  ]
      1>f:\program\git\prasterray\pthesis\application\SVO.h(149): warning C4018: '<' : signed/unsigned mismatch
-                 f:\program\git\prasterray\pthesis\application\SVO.h(146) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::GPU_Node &,CELL &,int)'
-                 Application\VoxelApp.cpp(194) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::GPU_Node &,CELL &,int)' being compiled
+                 f:\program\git\prasterray\pthesis\application\SVO.h(146) : while compiling class template member function 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::TNode &,CELL &,int)'
+                 Application\VoxelApp.cpp(195) : see reference to function template instantiation 'void SparseVoxelOctree<VOXEL::NC>::GetCell(const VOXEL::TNode &,CELL &,int)' being compiled
      1>f:\program\git\prasterray\pthesis\application\SVO.h(151): warning C4018: '<' : signed/unsigned mismatch
      1>f:\program\git\prasterray\pthesis\application\SVO.h(156): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
      1>f:\program\git\prasterray\pthesis\application\SVO.h(156): warning C4244: 'argument' : conversion from 'uint32_t' to 'float', possible loss of data
@@ -84,4 +84,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.04
+Time Elapsed 00:00:02.11

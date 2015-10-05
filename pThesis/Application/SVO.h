@@ -41,7 +41,7 @@ public:
 		if (!m_svoLoader.VLoad(_file))
 			return false;
 
-		GPU_Node* root =  &m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1];
+		TNode* root =  &m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1];
 		root->parentPtr = -1; // note: unsigned int
 		uint32_t nodePtr = m_svoLoader.m_nodes.size() - 1;
 		AssignParentPointer(root, nodePtr);
@@ -77,30 +77,30 @@ public:
 		return true;
 	}
 
-	void AssignParentPointer(GPU_Node*& _node, uint32_t _nodePtr)
+	void AssignParentPointer(TNode*& _node, uint32_t _nodePtr)
 	{
-		if (_node->NChildren() > 0)
+		if (_node->CountChildren() > 0)
 		{
 			for (int i = 0; i < 8; ++i)
 			{
-				if (_node->HasChild(i))
+				if (_node->HasChildAtIndex(i))
 				{
 					uint32_t childPtr = _node->GetChildAddress(i);
 					m_svoLoader.m_nodes[childPtr].parentPtr = _nodePtr;
-					GPU_Node* child = &m_svoLoader.m_nodes[childPtr];
+					TNode* child = &m_svoLoader.m_nodes[childPtr];
 					AssignParentPointer(child, childPtr);
 				}
 			}
 		}
 	}
 
-	std::vector<GPU_Node>& GetNodeList() { return m_svoLoader.m_nodes; }
+	std::vector<TNode>& GetNodeList() { return m_svoLoader.m_nodes; }
 
 
 	std::vector<GPU_Voxel<T>>& GetVoxelList() { return m_svoLoader.m_voxels; }
 
 
-	GPU_Node& GetRoot() 
+	TNode& GetRoot() 
 	{ 
 		//return m_svoLoader.m_nodes[0];
 		m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1].parentPtr = -1;	// note: unsigned int
@@ -110,7 +110,7 @@ public:
 
 	}
 
-	void GetSVO(GPU_Node& _parent, std::vector<GPU_Voxel<T>>& _voxels, int _level = 0)
+	void GetSVO(TNode& _parent, std::vector<GPU_Voxel<T>>& _voxels, int _level = 0)
 	{
 		uint32_t x, y, z;
 
@@ -124,17 +124,17 @@ public:
 			mcGrid[x][z].dataPtr = _parent.dataPtr; 
 		}
 
-		if (_parent.NChildren() == 0)
+		if (_parent.CountChildren() == 0)
 		{
 			_voxels.push_back(m_svoLoader.m_voxels[_parent.GetDataAddress()]);
 		}
 
-		if (_parent.NChildren() > 0)
+		if (_parent.CountChildren() > 0)
 		{
 			for (int i = 0; i < 8; ++i)
 			{
 				int index = MortonOrder[i];
-				if (_parent.HasChild(index))
+				if (_parent.HasChildAtIndex(index))
 				{
 					GetSVO(m_svoLoader.m_nodes[_parent.GetChildAddress(index)], _voxels, _level + 1);
 				}
@@ -142,7 +142,7 @@ public:
 		}
 	}
 
-	void GetCell(const GPU_Node& _parent, CELL& _cell, int _index)
+	void GetCell(const TNode& _parent, CELL& _cell, int _index)
 	{
 		int length = m_svoLoader.m_header.gridlength;
 

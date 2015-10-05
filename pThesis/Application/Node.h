@@ -4,7 +4,8 @@
 
 namespace VOXEL
 {
-	static const FVEC3 NodeOrigin[] = { FVEC3(0, 0, 0),		// Front Bottom Left
+	static const FVEC3 NodeOrigin[] = { 
+		FVEC3(0, 0, 0),		// Front Bottom Left
 		FVEC3(1, 0, 0),		// Front Bottom Right
 		FVEC3(0, 1, 0),		// Front Top	Left
 		FVEC3(1, 1, 0),		// Front Top	Right
@@ -117,7 +118,7 @@ namespace VOXEL
 		uint32_t	dataPtr;
 		uint32_t	basePtr;
 		uint32_t	parentPtr;
-		uint32_t	children;
+		int32_t		children;
 		int32_t		level;
 
 	private:
@@ -183,8 +184,8 @@ namespace VOXEL
 			{
 				if (_node.children[i] != EMPTY)
 				{
-					children |= (1 << i);								// set single bit at index 'i' (index range: 0-1)
-					children |= (_node.children[i] << (8 + i * 3));		// set three bits at interval 'i -> i+3' (index range: 8-29, interval range: 8*3, value range: 0-7)
+					children |= (1 << i);								// haschild[i] set single bit at index 'i' 
+					children |= (_node.children[i] << (8 + i * 3));		// child[i] address - set 3 bits at interval 'i -> i+3' (value range: 0-7)
 				}
 			}
 		}

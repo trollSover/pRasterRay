@@ -8,17 +8,6 @@ static const float maxDist = sqrt(2.0);
 static const int numSamples = 128;
 static const float stepSize = maxDist / float(numSamples);
 
-/* By morton Order */
-static const float3 offset[] = {
-	float3(0, 0, 0),
-	float3(0.5, 0, 0),
-	float3(0, 0.5, 0),
-	float3(0.5, 0.5, 0),
-	float3(0, 0, 0.5),
-	float3(0.5, 0, 0.5),
-	float3(0, 0.5, 0.5),
-	float3(0.5, 0.5, 0.5),
-};
 
 static const float4 colors[] = {
 	float4(1, 0, 0, 1),
@@ -35,6 +24,14 @@ struct AABB {
 	float3 Min;
 	float3 Max;
 };
+
+AABB getBox(float3 _min, float3 _max)
+{
+	AABB aabb;
+	aabb.Min = _min;
+	aabb.Max = _max;
+	return aabb;
+}
 
 bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 {
@@ -280,6 +277,29 @@ void Traverse(Ray _ray, uint2 pixelId)
 	} while (nodePtr != rootIndex);
 }
 
+float3 mins[] =
+{
+	float3(0, 0, 0),
+	float3(256, 0, 0),
+	float3(0, 256, 0),
+	float3(256, 256, 0),
+	float3(0, 0, 256),
+	float3(256, 0, 256),
+	float3(0, 256, 256),
+	float3(256, 256, 256)
+};
+float3 maxs[] =
+{
+	float3(256, 256, 256),
+	float3(512, 256, 256),
+	float3(256, 512, 256),
+	float3(512, 512, 256),
+	float3(256, 256, 512),
+	float3(512, 256, 512),
+	float3(256, 512, 512),
+	float3(512, 512, 512)
+};
+
 // {32 * 40, 45 * 16} 
 [numthreads(32, 16, 1)]
 void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
@@ -294,9 +314,9 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 		return;
 	}
 
-	float y = -float(2.f * threadId.y + 1.f - resHeight) * (1.f / (float)resHeight);
+	float y = -float(2.f * threadId.y + 1.f - resWidth) * (1.f / (float)resWidth);
 	float x = float(2.f * threadId.x + 1.f - resWidth)  * (1.f / (float)resWidth);
-	float z = 2.0f;
+	float z = 1.0f;
 
 	// Create new ray from the camera position to the pixel position
 	Ray ray;
@@ -311,20 +331,49 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 
 	uint nodeptr = rootIndex;
 
+	int hlen = gridLength;// / 2;
 	AABB aabb;
-	aabb.Min = float3(0,0,0);
-	aabb.Max = float3(gridLength, gridLength, gridLength);
-	aabb.Max = mul(float4(aabb.Max, 1), g_mWorld).xyz;
+	aabb.Min = float3(-0, -0, -0);
+	aabb.Max = float3(hlen, hlen, hlen);
+	//aabb.Max = mul(float4(aabb.Max, 1), g_ViewInverse).xyz;
+	//aabb.Min = mul(float4(aabb.Min, 1), g_ViewInverse).xyz;
+
 	// check if the ray intersect the root AABB
 	// if not: quit
 	// else continue with further checks
 	if (IntersectBox(ray, aabb, tnear, tfar))
 	{
-		if (tnear >= 0)
+		if (tnear >= 1)
 			writeBuffer[threadId.xy] = float4(0.125, 0.125, 0.125, 1);
 	}
 
 	// SVO traversal goes in here
+	//int level = Nodes[nodeptr].level;
+
+	//for (int i = 0; i < 8; ++i)
+	//{
+	//	if (HasChildAtIndex(nodeptr, i))
+	//	{
+	//		AABB box;
+	//		box.Min = mins[i];
+	//		box.Max = maxs[i];
+	//		float tn, tf;
+	//		if (IntersectBox(ray, box, tn, tf))
+	//		{
+	//			if (tn >= 0.f)
+	//			{
+	//				writeBuffer[threadId.xy] = float4(0,1, 0, 1);
+	//			}
+	//		}
+	//		writeBuffer[threadId.xy] = float4(1, 0, 0, 1);
+	//		return;
+	//	}
+	//	else
+	//	{
+	//		//writeBuffer[threadId.xy] = float4(1, 1, 1, 1);
+	//	}
+	//}
+
 
 	return;
 }

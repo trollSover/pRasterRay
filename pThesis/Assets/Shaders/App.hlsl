@@ -9,10 +9,10 @@ static const float3 LightPos = float3(0, 512, 0);
 
 cbuffer cbCamera : register(b0)
 {
-	float4x4 g_mWVP;		// 64
-	float4x4 g_mView;		// 64
-	float4x4 g_mProjection;	// 64
-	float4x4 g_mWorld;	// 64
+	float4x4 g_WVP;		// 64
+	float4x4 g_View;		// 64
+	float4x4 g_Projection;	// 64
+	float4x4 g_World;	// 64
 
 	float4x4 g_ViewInverse;
 	float4x4 g_ProjectionInverse;
@@ -89,7 +89,7 @@ struct Node
 	uint dataPtr;	// 4
 	uint basePtr;	// 4	
 	uint parentPtr;	// 4
-	int  children;	// 4
+	int children;	// 4
 	int  level;		// 4
 };					// = 20 bytes
 
@@ -103,10 +103,10 @@ struct Ray						// 48 bytes
 StructuredBuffer<TVoxel>Voxels		: register(t0);
 StructuredBuffer<Node>	Nodes		: register(t1);
 
-bool IsLeaf(Node _node)
-{
-	return _node.children == LEAFMASK;
-}
+//bool IsLeaf(Node _node)
+//{
+//	return _node.children == LEAFMASK;
+//}
 
 /* Decode 32-bit interleaved (xyz) morton */
 float3 MortonDecode(uint morton)

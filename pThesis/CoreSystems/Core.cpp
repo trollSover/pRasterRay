@@ -70,12 +70,8 @@ void Core::Run()
 	bool run = true;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	m_pTimer->VUpdate();	/* reset the timer */
-
 	while (run)
 	{
-		m_pTimer->VUpdate();
-
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -83,13 +79,16 @@ void Core::Run()
 		}
 		else
 		{
-			Time dt = m_pTimer->VGetTime();			/* get time delta */
+			
 			if (msg.message == WM_QUIT)
 			{
 				run = false;
 			}
 			else
-			{				
+			{		
+				m_pTimer->VUpdate();
+				Time dt = m_pTimer->VGetTime();			/* get time delta */
+
 				run = m_pApplication->VFrame(dt);	/* update application */
 
 				if (!run)
@@ -97,6 +96,7 @@ void Core::Run()
 					PrintError(AT, "error encountered during rendering - shutting down");
 				}			
 			}			
-		}	
+		}
+		
 	}
 }

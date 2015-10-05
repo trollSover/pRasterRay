@@ -58,7 +58,7 @@ void main(point INPUT input[1], inout TriangleStream<OUTPUT> triStream)
 	{
 		int index = ind[i];
 
-		float4 offset = mul(float4(box[index], 0), g_mWVP);
+		float4 offset = mul(float4(box[index], 0), g_WVP);
 		output.position = origin + offset;
 
 		float3 wp = box[index] - input[0].wposition;

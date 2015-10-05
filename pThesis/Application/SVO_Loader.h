@@ -14,8 +14,8 @@ public:
 	int mX, mY, mZ;
 	SVO_Header m_header;
 	std::vector<GPU_Voxel<NC>>	m_voxels;
-	std::vector<GPU_Node>			m_nodes;
-	std::vector<TNode> testNodes;
+	//std::vector<GPU_Node>			m_nodes;
+	std::vector<TNode> m_nodes;// testNodes;
 private:
 protected:
 public:

@@ -174,6 +174,7 @@ bool VoxelApp::VInit()
 		{
 			int end = line.find_first_of(' ') + 1;
 			svoPath = line.erase(0, end);
+			break;
 		}
 		printf("%s\n", line.c_str());
 	}
@@ -184,7 +185,7 @@ bool VoxelApp::VInit()
 
 	std::vector<GPU_Voxel<NC>> voxs;
 
-	GPU_Node* root = &m_svo.GetRoot();
+	TNode* root = &m_svo.GetRoot();
 
 	m_svo.GetSVO(*root, voxs);
 
@@ -232,16 +233,17 @@ bool VoxelApp::VInit()
 
 	//m_camera.SetPositionAndView(maxX * 0.5f, minY + 256.f, maxZ * 0.5f, 0, 90);
 	m_camera.SetPositionAndView(128, 256, -128, 0, 45);
+	m_camera.SetMovementSpeed(1);
 	m_camera.Update(Time());
 	m_pCuller = VNEW FrustumCulling();
 
-	m_pCuller->CheckVoxels(m_svo.m_svoLoader.testNodes, rootPtr, ninds, FVEC3(gridLength, gridLength, gridLength) / 2);	// unused at the moment
+	m_pCuller->CheckVoxels(m_svo.m_svoLoader.m_nodes, rootPtr, ninds, FVEC3(gridLength, gridLength, gridLength) / 2);	// unused at the moment
 
 	m_pTerrainVBuffer = VNEW D3DBuffer();
 
 	printf("Points: %i RAM estimate: %i MB\n", vertices.size(), sizeof(GPU_Voxel<NC>)* vertices.size() / 1024 / 1024);
 	printf("Voxels: %i RAM estimate: %i MB\n", m_svo.GetVoxelList().size(), (sizeof(GPU_Voxel<NC>) /* Other data? */)* m_svo.GetVoxelList().size() / 1024 / 1024);
-	printf("Nodes: %i RAM estimate: %i MB\n", m_svo.GetNodeList().size(), sizeof(GPU_Node)* m_svo.GetNodeList().size() / 1024 / 1024);
+	printf("Nodes: %i RAM estimate: %i MB\n", m_svo.GetNodeList().size(), sizeof(TNode)* m_svo.GetNodeList().size() / 1024 / 1024);
 
 	printf("(Terrain) ");
 	if (!m_pTerrainVBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_VERTEX, m_svo.GetNodeList().size(), sizeof(GPU_Node), &m_svo.GetNodeList()[0]))
@@ -258,7 +260,7 @@ bool VoxelApp::VInit()
 	}
 
 	size_t nElements = m_svo.GetNodeList().size();
-	uint32_t sElement = sizeof(GPU_Node);
+	uint32_t sElement = sizeof(TNode);
 
 	m_pNodeBuffer = VNEW D3DBuffer();
 
@@ -350,16 +352,16 @@ static int count;
 static int fps;
 static float cMS;
 static float oMS;
-static float movespeed = 1000;
+static float movespeed = 1;
 
 bool VoxelApp::VFrame(Time time)
 {
 
 	count++;
-	cMS += (time.dtMS / 1000.f);
+	cMS += (time.dtMS);
 
 
-	if (cMS >= (oMS + 0.0001f))
+	if (cMS >= (oMS + 1000.f))
 	{
 		fps = count;
 		count = 0;
@@ -381,7 +383,7 @@ bool VoxelApp::VFrame(Time time)
 	m_pInput->VIsKeyDown('D') ? m_camera.SetMovementToggle(3, 1) : m_camera.SetMovementToggle(3, 0);
 
 
-	const float movespeedIncr = 100.f;
+	const float movespeedIncr = 1;
 
 	if (m_pInput->VIsKeyDown(VK_ADD) && toggleMove)
 	{
@@ -399,14 +401,30 @@ bool VoxelApp::VFrame(Time time)
 		toggleMove = true;
 	}
 
-	/* Mouse Look */
+	/* Camera Rotate */
+	const float lookBase = 1.f / 1000.f;
+	const float lookSpeed = lookBase * time.dtMS;
+
 	if (m_pInput->MouseMoved())
 	{
-		const float lookBase = 10.25f;
-		const float lookSpeed = lookBase * time.dtMS;
 		m_camera.AdjustHeadingPitch(m_pInput->m_mousePoint.x * lookSpeed, m_pInput->m_mousePoint.y * lookSpeed);
 	}
-	else m_camera.AdjustHeadingPitch(0, 0);
+	else if (m_pInput->VIsKeyDown('Q'))
+	{
+		m_camera.AdjustHeadingPitch(-lookSpeed,0);
+	}
+	else if (m_pInput->VIsKeyDown('E'))
+	{
+		m_camera.AdjustHeadingPitch(lookSpeed, 0);
+	}
+	else if (m_pInput->VIsKeyDown('R'))
+	{
+		m_camera.AdjustHeadingPitch(0, -lookSpeed);
+	}
+	else if (m_pInput->VIsKeyDown('F'))
+	{
+		m_camera.AdjustHeadingPitch(0, lookSpeed);
+	}
 
 	m_camera.Update(time);
 
@@ -479,7 +497,7 @@ bool VoxelApp::VFrame(Time time)
 	m_pFontWrapper->DrawString(m_pDriver->GetContext(), ctext.c_str(), 14.f, 10, 10, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);
 
 	std::wostringstream foss;
-	foss << "FPS = " << fps;
+	foss << "FPS = " << fps << "\ndt = " << time.dtMS;
 	std::wstring uitext = foss.str();
 
 	m_pFontWrapper->DrawString(m_pDriver->GetContext(), uitext.c_str(), 14.f, 10, 60, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);

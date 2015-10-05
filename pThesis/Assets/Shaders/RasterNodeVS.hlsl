@@ -22,7 +22,7 @@ OUTPUT main(INPUT input)
 	float3 origin = MortonDecode(Voxels[input.dataPtr].morton);
 
 	output.wposition = origin;
-	output.position = mul( float4(origin,1), g_mWVP);
+	output.position = mul( float4(origin,1), g_WVP);
 	output.uv = float2(0, 0);
 
 	return output;
