@@ -1,9 +1,12 @@
 # pRasterRay
 
 CONTROLS
+*ESC to exit application
 *move using WASD
 *look using mouse
-*ESC to exit application
+*tilt horizontal using QE
+*tilt vertical using RF
+*increase/decrease movespeed +-
 
 NOTES
 *compile x64 for the moment since a IO mismatch reading x32 has not been fixed yet
