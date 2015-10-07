@@ -100,8 +100,8 @@ struct Ray						// 48 bytes
 };							// 24 bytes
 
 
-StructuredBuffer<TVoxel>Voxels		: register(t0);
-StructuredBuffer<Node>	Nodes		: register(t1);
+RWStructuredBuffer<TVoxel>Voxels		: register(u0);
+RWStructuredBuffer<Node>	Nodes		: register(u1);
 
 //bool IsLeaf(Node _node)
 //{

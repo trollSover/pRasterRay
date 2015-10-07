@@ -277,7 +277,7 @@ void Traverse(Ray _ray, uint2 pixelId)
 	} while (nodePtr != rootIndex);
 }
 
-float3 mins[] =
+static const float3 mins[8] =
 {
 	float3(0, 0, 0),
 	float3(256, 0, 0),
@@ -288,7 +288,7 @@ float3 mins[] =
 	float3(0, 256, 256),
 	float3(256, 256, 256)
 };
-float3 maxs[] =
+static const float3 maxs[8] =
 {
 	float3(256, 256, 256),
 	float3(512, 256, 256),
@@ -343,36 +343,39 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 	// else continue with further checks
 	if (IntersectBox(ray, aabb, tnear, tfar))
 	{
-		if (tnear >= 1)
-			writeBuffer[threadId.xy] = float4(0.125, 0.125, 0.125, 1);
+		//if (tnear >= 1)
+		//	writeBuffer[threadId.xy] = float4(0.125, 0.125, 0.125, 1);
+		int N = CountChildren(nodeptr);
+		writeBuffer[threadId.xy] = colors[N];
 	}
 
 	// SVO traversal goes in here
 	//int level = Nodes[nodeptr].level;
 
-	//for (int i = 0; i < 8; ++i)
-	//{
-	//	if (HasChildAtIndex(nodeptr, i))
-	//	{
-	//		AABB box;
-	//		box.Min = mins[i];
-	//		box.Max = maxs[i];
-	//		float tn, tf;
-	//		if (IntersectBox(ray, box, tn, tf))
-	//		{
-	//			if (tn >= 0.f)
-	//			{
-	//				writeBuffer[threadId.xy] = float4(0,1, 0, 1);
-	//			}
-	//		}
-	//		writeBuffer[threadId.xy] = float4(1, 0, 0, 1);
-	//		return;
-	//	}
-	//	else
-	//	{
-	//		//writeBuffer[threadId.xy] = float4(1, 1, 1, 1);
-	//	}
-	//}
+	// debug rendering
+	for (int i = 0; i < 8; ++i)
+	{
+		if (HasChildAtIndex(nodeptr, i))
+		{
+			AABB box;
+			box.Min = mins[i];
+			box.Max = maxs[i];
+			float tn, tf;
+			if (IntersectBox(ray, box, tn, tf))
+			{
+				if (tn >= 0.f)
+				{
+					writeBuffer[threadId.xy] = colors[i];	// this does not take fragment distance into account and override according to order processed
+				}
+			}
+			//writeBuffer[threadId.xy] = float4(1, 0, 0, 1);
+			//return;
+		}
+		else
+		{
+			//writeBuffer[threadId.xy] = float4(1, 1, 1, 1);
+		}
+	}
 
 
 	return;

@@ -482,6 +482,11 @@ bool VoxelApp::VFrame(Time time)
 	// rasterize deferred
 	m_pDebugRenderer->VDraw(m_pDriver, m_pDebugVBuffer, m_pTerrainIBuffer);
 	// raycast deferred
+	// push svo on gpu
+	unsigned int initialCounts = -1;
+	ID3D11UnorderedAccessView * uavs[] = { m_pVoxelBuffer->GetUAV(), m_pNodeBuffer->GetUAV() };
+	m_pDriver->GetContext()->CSSetUnorderedAccessViews(0, 2, uavs, NULL);
+
 	m_pRayCaster->VDraw(m_pDriver, nullptr);
 
 	// finalize deferred by merging the different targets
