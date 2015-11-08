@@ -115,6 +115,8 @@ bool BackBufferRender::VInit(DXDriver* _driver)
 
 void BackBufferRender::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _indices)
 {
+	_driver->SetRasterizerState(D3D11_CULL_BACK, D3D11_FILL_SOLID);
+
 	ID3D11DeviceContext* context = _driver->GetContext();
 
 	// turn off depth & set rendertarget to backbuffer

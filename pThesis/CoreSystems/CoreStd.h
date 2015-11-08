@@ -128,6 +128,23 @@ struct CBDEval
 	VEC2<uint32_t>	padding0;
 };
 
+struct CBOctreeMatrices
+{
+	FMAT4X4 viewportToCamera;		// 64
+	FMAT4X4 cameraToOctree;			// 64
+	//FMAT4X4 octreeToWorld;			// 64
+	//
+	//FMAT4X4 worldToOctree;			// 64
+	//FMAT4X4 OctreeToWorld;			// 64
+	//
+	//FMAT4X4	octreeToViewPort;		// 64
+	//FMAT4X4	viewportToOctree;		// 64
+
+	//FVEC3	cameraPosition;			// 12
+	float	pixelInOctree;			// 4
+	FVEC3	padding;
+};									// = 464 / 16 = 29
+
 struct Intersection
 {
 	int id;
@@ -277,30 +294,30 @@ static void PrintError(const char* _location, const HRESULT _hr)
 #endif
 }
 
+//#include <WinUser.h>
 
+/* User Input Defines */
+// Camera Input
+#define CAMERA_FORWARD			'W'
+#define CAMERA_BACK				'S'
+#define CAMERA_LEFT				'A'
+#define CAMERA_RIGHT			'D'
+#define CAMERA_ROTATE_LEFT		'Q'
+#define CAMERA_ROTATE_RIGHT		'E'
+#define CAMERA_ROTATE_UP		'R'
+#define CAMERA_ROTATE_DOWN		'F'
+#define CAMERA_SPEED_INCREMENT	VK_ADD
+#define CAMERA_SPEED_DECREMENT	VK_SUBTRACT
+#define CAMERA_SPEED_RESET		VK_MULTIPLY
+// General UI Input
+#define UI_HELP					'H'
 
-//	XMFLOAT4 operator=(const XMFLOAT4& d2) { this->d = d2; }
-//
-//	operator const XMFLOAT4(){ return this->d; }
-//	operator const XMVECTOR(){ return XMLoadFloat4(&d); }
+// Draw State Input
+#define TOGGLE_RASTERIZE		'1'
+#define TOGGLE_RAYCAST			'2'
+#define TOGGLE_CULL_MODE		VK_F1
+#define TOGGLE_FILL_MODE		VK_F2
 
-//
-//	//XMFLOAT4X4 operator=(const XMFLOAT4X4& d2)	{ XMStoreFloat4x4(&this->d, XMLoadFloat4x4(&d2)); }
-//	operator const XMFLOAT4*()	{ return (XMFLOAT4*)this; }
-//	operator XMMATRIX()			{ return XMLoadFloat4x4(&d); }
-//};
-//
-//struct Vertex
-//{
-//	VECTOR3 position;
-//	VECTOR3 normal;
-//	VECTOR2 uv;
-//
-//	Vertex(float size = 1.0f, VECTOR3 _p = VECTOR3(0, 0, 0), VECTOR3 _n = VECTOR3(0, 0, 0), VECTOR2 _uv = VECTOR2(0, 0))
-//		: position(_p), normal(_n), uv(_uv)
-//	{
-//		position.d.x *= size;
-//		position.d.y *= size;
-//		position.d.z *= size;
-//	}
-//};
+/* General Limit Defines */
+#define CAMERA_SPEED_MAX		10
+#define CAMERA_SPEED_MIN		0.01

@@ -29,7 +29,6 @@ enum RENDER_TYPE
 	RT_Unknown		= 3,
 };
 
-
 class VoxelApp
 	: public IApplication
 {
@@ -52,6 +51,7 @@ private:
 	D3DBuffer*	m_pVoxelCB;
 	D3DBuffer*	m_pWindowCB;
 	D3DBuffer*	m_pEvalCB;
+	D3DBuffer*	m_pOctreeMatrices;
 
 	/* Resource Buffers */
 	D3DBuffer*	m_pTerrainVBuffer;
@@ -73,11 +73,17 @@ private:
 	CBDVoxel	cbVoxel;
 	CBDWindow	cbWindow;
 	CBDEval		cbEval;
+	CBOctreeMatrices	cbOctreeMatrices;
 
 	D3D11_FILL_MODE m_fillMode;
 	D3D11_CULL_MODE	m_cullMode;
 
 	IFW1FontWrapper* m_pFontWrapper;
+
+	bool drawRasterized;
+	bool drawRayCast;
+	bool drawUIHelp;
+	bool drawUI;
 
 protected:
 public:
@@ -87,9 +93,18 @@ private:
 
 	void SetRenderType(RENDER_TYPE _renderType);
 
-	void ToggleFillMode();
-	void ToggleCullMode();
+	void SetFillMode(const D3D11_FILL_MODE&);
+	void SetCullMode(const D3D11_CULL_MODE&);
 
+	bool KeyPress(unsigned int);
+	bool ToggleOnKey(unsigned int, bool&);
+	
+	void UpdateCamera(const Time&);
+	void UpdateRenderState(void);
+	void UpdateBuffers(void);
+	void UpdateUI(const Time&);
+	void RenderGeometry(void);
+	void RenderUI(const Time&);
 protected:
 public:
 	bool VInit()			final;

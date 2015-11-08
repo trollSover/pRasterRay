@@ -23,7 +23,7 @@ bool RayCaster::VInit(DXDriver* _driver)
 
 	target->GetUAV(m_pSourceBuffer);
 
-	_driver->GetRenderTarget(RT_COLOR, target);
+	_driver->GetRenderTarget(RT_NORMAL, target);	// some bug mixes NORMAL with COLOR - in this case we want COLOR but must ask for NORMAL to get the correct rendertarget
 
 	if (!target)
 		return false;
@@ -65,6 +65,7 @@ void RayCaster::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _indices)
 	_driver->GetContext()->Dispatch(40, 45, 1);
 
 	_driver->GetContext()->CSSetShader(nullptr, nullptr, 0);
+
 
 	uav[0] = nullptr;
 	uav[1] = nullptr;

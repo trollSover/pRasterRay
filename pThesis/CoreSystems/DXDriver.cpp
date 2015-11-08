@@ -232,7 +232,7 @@ void DXDriver::SetRasterizerState(D3D11_CULL_MODE _cullMode, D3D11_FILL_MODE _fi
 		PrintError(AT, "failed to set new rasterizer state");
 	}
 
-	printf("rasterizer state updated\n");
+	//printf("rasterizer state updated\n");
 	// Set the rasterizer state.
 	m_context->RSSetState(m_rasterState);
 }

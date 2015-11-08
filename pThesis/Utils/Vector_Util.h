@@ -68,8 +68,8 @@ namespace VECTOR
 
 		/* DirectX conversions */
 #ifdef DXVECTOR
-		operator XMVECTOR() { return XMLoadFloat4((XMFLOAT2*)this); }
-		operator XMFLOAT2() { return XMFLOAT2(x, y); }
+		//operator XMVECTOR() { return XMLoadFloat4((XMFLOAT2*)this); }
+		//operator XMFLOAT2() { return XMFLOAT2(x, y); }
 #endif
 	};
 
@@ -197,7 +197,7 @@ namespace VECTOR
 #endif
 	};
 
-	/* Matrix4 template
+	/* Matrix4 template - row:column order
 		#x, y : template */
 	template<typename T>
 	struct MATRIX4X4
@@ -325,6 +325,28 @@ namespace VECTOR
 	/************************
 	--- Matrix Operations ---
 	*************************/
+
+	/* Build translation matrix */
+	template<typename T>
+	inline MATRIX4X4<T> TranslateMatrix(const VEC4<T>& _vec)
+	{
+		MATRIX4X4<T> r = TMatrixIdentity<T>();
+		r.m[0][3] = _vec.x;
+		r.m[1][3] = _vec.y;
+		r.m[2][3] = _vec.z;
+		return r;
+	}
+
+	/* Build scale matrix */
+	template<typename T>
+	inline MATRIX4X4<T> ScaleMatrix(const VEC4<T>& _vec)
+	{
+		MATRIX4X4<T> r = TMatrixIdentity<T>();
+		r.m[0][0] = _vec.x;
+		r.m[1][1] = _vec.y;
+		r.m[2][2] = _vec.z;
+		return r;
+	}
 
 	/* Get Diagonal VEC4<T> */
 	template<typename T>

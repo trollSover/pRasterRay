@@ -38,7 +38,7 @@ bool Window::Init(HINSTANCE _hInstance)
 	}
 
 	m_hWnd = CreateWindowEx(WS_EX_APPWINDOW, g_pApplication->VGetAppName(), g_pApplication->VGetAppName(),
-							WS_CLIPSIBLINGS | WS_CLIPCHILDREN , 
+							WS_OVERLAPPEDWINDOW, //WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
 							x, y, res.width, res.height, 
 							NULL, NULL, m_hInstance, NULL);
 

@@ -117,9 +117,9 @@ namespace VOXEL
 
 		uint32_t	dataPtr;
 		uint32_t	basePtr;
-		uint32_t	parentPtr;
+		//uint32_t	parentPtr;
 		int32_t		children;
-		int32_t		level;
+		//int32_t		level;
 
 	private:
 		bool HasData() const { return NODATA != dataPtr; }
@@ -155,12 +155,12 @@ namespace VOXEL
 		}
 
 		TNode() 
-			: children(0), dataPtr(0), basePtr(0), level(-1)
+			: children(0), dataPtr(0), basePtr(0)//, level(-1)
 		{ }
 
 		template<typename T>
 		TNode(const Node<T>& _node) 
-			: children(0), dataPtr(_node.dataPtr), basePtr(_node.basePtr), level(_node.level)
+			: children(0), dataPtr(_node.dataPtr), basePtr(_node.basePtr)//, level(_node.level)
 		{
 
 			/*

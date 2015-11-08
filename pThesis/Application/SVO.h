@@ -42,7 +42,7 @@ public:
 			return false;
 
 		TNode* root =  &m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1];
-		root->parentPtr = -1; // note: unsigned int
+//		root->parentPtr = -1; // note: unsigned int
 		uint32_t nodePtr = m_svoLoader.m_nodes.size() - 1;
 		AssignParentPointer(root, nodePtr);
 
@@ -86,7 +86,7 @@ public:
 				if (_node->HasChildAtIndex(i))
 				{
 					uint32_t childPtr = _node->GetChildAddress(i);
-					m_svoLoader.m_nodes[childPtr].parentPtr = _nodePtr;
+//					m_svoLoader.m_nodes[childPtr].parentPtr = _nodePtr;
 					TNode* child = &m_svoLoader.m_nodes[childPtr];
 					AssignParentPointer(child, childPtr);
 				}
@@ -103,7 +103,7 @@ public:
 	TNode& GetRoot() 
 	{ 
 		//return m_svoLoader.m_nodes[0];
-		m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1].parentPtr = -1;	// note: unsigned int
+//		m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1].parentPtr = -1;	// note: unsigned int
 
 		return m_svoLoader.m_nodes[m_svoLoader.m_nodes.size()-1]; 
 

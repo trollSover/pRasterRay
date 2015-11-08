@@ -78,13 +78,12 @@ void Core::Run()
 			DispatchMessage(&msg);
 		}
 		else
-		{
-			
-			if (msg.message == WM_QUIT)
-			{
-				run = false;
-			}
-			else
+		{			
+			//if (msg.message == WM_QUIT)
+			//{
+			//	run = false;
+			//}
+			//else
 			{		
 				m_pTimer->VUpdate();
 				Time dt = m_pTimer->VGetTime();			/* get time delta */
@@ -96,6 +95,11 @@ void Core::Run()
 					PrintError(AT, "error encountered during rendering - shutting down");
 				}			
 			}			
+		}
+
+		if (msg.message == WM_QUIT)
+		{
+			run = false;
 		}
 		
 	}

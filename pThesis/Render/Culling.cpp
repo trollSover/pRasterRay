@@ -207,7 +207,7 @@ void FrustumCulling::CheckVoxels(const std::vector<GPU_Node>& _nodes, uint32_t _
 void FrustumCulling::CheckVoxels(const std::vector<TNode>& _nodes, uint32_t _nodePtr, std::vector<uint32_t>& _visibleNodes, FVEC3 _origin)
 {
 	TNode node = _nodes[_nodePtr];
-	uint32_t dim = std::pow(2, node.level);
+	uint32_t dim = std::pow(2, 42);
 
 	if (!CheckCube(_origin.x, _origin.y, _origin.z, dim))
 		return;

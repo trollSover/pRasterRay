@@ -8,9 +8,11 @@
 #include "../Global/TimerQPC.h"
 
 #include <sstream>
+#include <bitset>
 
 #define RES_WIDTH	1280
 #define RES_HEIGHT	720
+
 
 VoxelApp::~VoxelApp()
 {
@@ -31,6 +33,10 @@ VoxelApp::~VoxelApp()
 
 bool VoxelApp::VInit()
 {
+	drawRasterized	= true;
+	drawRayCast		= true;
+	drawUIHelp		= false;
+
 	printf("Input...");
 	m_pInput = new SimpleInput();
 	if (!m_pInput || !m_pInput->VInit())
@@ -45,7 +51,7 @@ bool VoxelApp::VInit()
 
 	m_eRenderType = RENDER_TYPE::RT_Debug;
 	SetRenderType(m_eRenderType);
-	m_cullMode = D3D11_CULL_NONE;
+	m_cullMode = D3D11_CULL_BACK;// D3D11_CULL_NONE;
 	m_fillMode = D3D11_FILL_SOLID;
 	m_pDriver->SetRasterizerState(m_cullMode, m_fillMode);
 
@@ -150,6 +156,11 @@ bool VoxelApp::VInit()
 	if (!m_pEvalCB->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_CONSTANT, 1, sizeof(CBDEval)))
 		return false;
 
+	printf("(Octree) ");
+	m_pOctreeMatrices = VNEW D3DBuffer();
+	if (!m_pOctreeMatrices->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_CONSTANT, 1, sizeof(CBOctreeMatrices)))
+		return false;
+
 	printf("/User\n");
 
 	printf("--- SVO ---\n");
@@ -246,7 +257,7 @@ bool VoxelApp::VInit()
 	printf("Nodes: %i RAM estimate: %i MB\n", m_svo.GetNodeList().size(), sizeof(TNode)* m_svo.GetNodeList().size() / 1024 / 1024);
 
 	printf("(Terrain) ");
-	if (!m_pTerrainVBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_VERTEX, m_svo.GetNodeList().size(), sizeof(GPU_Node), &m_svo.GetNodeList()[0]))
+	if (!m_pTerrainVBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_VERTEX, m_svo.GetNodeList().size(), sizeof(TNode), &m_svo.GetNodeList()[0]))
 	{
 		PrintError(AT, "failed to create vertex buffer");
 		return false;
@@ -329,12 +340,14 @@ bool VoxelApp::VInit()
 		PrintError(AT, "failed to create font factory");
 		return false;
 	}
+	
 
 	if (FAILED(fw1Factory->CreateFontWrapper(m_pDriver->GetDevice(), L"Times New Roman", &m_pFontWrapper)))
 	{
 		PrintError(AT, "failed to create font wrapper");
 		return false;
 	}
+		
 
 	fw1Factory->Release();
 
@@ -342,11 +355,32 @@ bool VoxelApp::VInit()
 	printf("Appliction: Ok\n");
 #endif
 
+	std::ofstream stream;
+	stream.open("root.txt");
+	TNode* pNode = root;
+	stream << "root has " << pNode->CountChildren() << " children\naddress\t\t\t= " << rootPtr << "\n";
+	stream << "child mask " << pNode->children << "\t= " << std::bitset<32>(pNode->children).to_string() << "\n";
+	stream << "children\t\t= " << std::bitset<8>(pNode->children).to_string() << "\n\n";
+	for (int i = 0; i < 8; ++i)
+	{
+		if (pNode->HasChildAtIndex(i))
+		{
+			TNode* pChild = &m_svo.m_svoLoader.m_nodes[pNode->GetChildAddress(i)];
+			stream << "child: " << i << " has " << pChild->CountChildren() << " children\naddress\t\t\t= " << pNode->GetChildAddress(i) << "\n";
+			stream << "child mask " << pChild->children << "\t= " << std::bitset<32>(pChild->children).to_string() << "\n";
+			stream << "children\t\t= " << std::bitset<8>(pChild->children).to_string() << "\n\n";
+		}
+	}
+	stream.close();
+
 	return true;
 }
 
-static bool toggleFill = false;
-static bool toggleCull = false;
+static bool toggleUI = true;
+static bool toggleRasterize = true;
+static bool toggleRayCast = true;
+static bool toggleFill = true;
+static bool toggleCull = true;
 static bool toggleMove = true;
 static int count;
 static int fps;
@@ -356,9 +390,138 @@ static float movespeed = 1;
 
 bool VoxelApp::VFrame(Time time)
 {
+	HRESULT hr = S_OK;
 
+	if (KeyPress(VK_ESCAPE))
+	{
+		PostQuitMessage(0);
+		return true;
+	}
+
+	/* Update UI */
+	UpdateUI(time);
+
+	/* Update Camera */
+	UpdateCamera(time);
+
+	/* Update Render Settings */
+	// render state
+	UpdateRenderState();
+	// vertex culling
+	//m_pCuller->Construct(100, TMatrixTranspose(m_camera.GetProjectionMatrix()), TMatrixTranspose(m_camera.GetViewMatrix()));	// unused at the moment
+	// buffer mapping
+	UpdateBuffers();
+	
+	/* Draw */
+	m_pDriver->BeginScene();
+
+	// draw terrain
+	RenderGeometry();
+	
+	// draw UI
+	RenderUI(time);
+
+	// reset rasterizer state
+	SetFillMode(m_fillMode);
+	SetCullMode(m_cullMode);
+
+	/* End Draw */
+	return m_pDriver->EndScene();
+}
+
+void VoxelApp::RenderUI(const Time& _time)
+{
+	FVEC3 cpos = m_camera.GetPosition();
+	FVEC3 cdir = m_camera.GetEyeDir();
+
+	const float fontSize = 16.0f;
+	const float indx = 10.0f;
+	float indy = 10.0f;
+
+	std::wostringstream stream;
+	std::wstring str;
+	stream << "Camera::Position\nx: " << cpos.x << "\ny: " << cpos.y << "\nz: " << cpos.z << "\n" <<
+			"Camera::Direction\nx: " << cdir.x << "\ny: " << cdir.y << "\nz: " << cdir.z <<
+			"\nCamera::Speed: " << m_camera.GetMovementSpeed();
+
+	str = stream.str();
+
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, indx, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	stream.str(std::wstring());
+	stream.flush();
+
+	stream << "FPS = " << fps << "\ndt(ms) = " << _time.dtMS;
+	str = stream.str();
+
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, indx, 180, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	stream.str(std::wstring());
+	stream.flush();
+
+	stream <<	"Cull Mode: " << (m_cullMode == D3D11_CULL_BACK ? "back" : "none") << 
+				"\nFill Mode: " << (m_fillMode == D3D11_FILL_SOLID ? "solid" : "wireframe") <<
+				"\nRasterizer: " << (drawRasterized ? "on" : "off") <<
+				"\nRayCaster: " << (drawRayCast ? "on" : "off");
+
+	str = stream.str();
+
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 200, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	stream.str(std::wstring());
+	stream.flush();
+
+	if (drawUIHelp)
+	{
+		const WCHAR* help = L"Move: WASD\nLook: Mouse\nToggle Cull: F1\nToggle Fill: F2\nCamera Speed: Numpad +/-\nToggle Rasterize: 1\nToggle RayCast: 2";
+		m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	}
+	else
+	{
+		const WCHAR* help = L"Press 'h' for control mappings";
+		m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	}
+}
+
+void VoxelApp::RenderGeometry(void)
+{
+	// rasterize deferred
+	if (drawRasterized)
+	{
+		m_pDebugRenderer->VDraw(m_pDriver, m_pDebugVBuffer, m_pTerrainIBuffer);
+	}
+	else
+	{
+		// clear deferred rendertargets
+		RenderTarget* renderTargets[3];
+		m_pDriver->GetRenderTarget(RT_NORMAL, renderTargets[0]);
+		m_pDriver->GetRenderTarget(RT_DEPTH, renderTargets[1]);
+		m_pDriver->GetRenderTarget(RT_COLOR, renderTargets[2]);
+		ID3D11RenderTargetView* rtvs[3];
+		renderTargets[0]->GetView(*&rtvs[0]);
+		renderTargets[1]->GetView(*&rtvs[1]);
+		renderTargets[2]->GetView(*&rtvs[2]);
+		m_pDriver->ClearRenderTargets(rtvs, 3);
+	}
+
+	// raycast deferred
+	if (drawRayCast)
+	{
+		unsigned int initialCounts = -1;
+		ID3D11UnorderedAccessView * uavs[] = { m_pVoxelBuffer->GetUAV(), m_pNodeBuffer->GetUAV() };
+		m_pDriver->GetContext()->CSSetUnorderedAccessViews(0, 2, uavs, NULL);
+
+		m_pRayCaster->VDraw(m_pDriver, nullptr);
+	}
+
+
+	// finalize deferred by merging the different targets
+	SetFillMode(D3D11_FILL_SOLID); // fill mode
+	m_pBackBufferDeferred->VDraw(m_pDriver, nullptr);
+}
+
+void VoxelApp::UpdateUI(const Time& _time)
+{
+	// Simple FPS counter
 	count++;
-	cMS += (time.dtMS);
+	cMS += (_time.dtMS);
 
 
 	if (cMS >= (oMS + 1000.f))
@@ -368,98 +531,35 @@ bool VoxelApp::VFrame(Time time)
 		oMS = cMS;
 	}
 
+	// UI State Update
+	if (ToggleOnKey(UI_HELP, toggleUI))
+	{
+		drawUIHelp = !drawUIHelp;
+	}
+}
+
+void VoxelApp::UpdateBuffers(void)
+{
 	HRESULT hr = S_OK;
 
-	if (m_pInput->VIsKeyDown(VK_ESCAPE))
-	{
-		PostQuitMessage(0);
-		return true;
-	}
+	/* Update cbuffers */
 
-	/* Update Camera */
-	m_pInput->VIsKeyDown('W') ? m_camera.SetMovementToggle(0, 1) : m_camera.SetMovementToggle(0, 0);
-	m_pInput->VIsKeyDown('A') ? m_camera.SetMovementToggle(2, -1) : m_camera.SetMovementToggle(2, 0);
-	m_pInput->VIsKeyDown('S') ? m_camera.SetMovementToggle(1, -1) : m_camera.SetMovementToggle(1, 0);
-	m_pInput->VIsKeyDown('D') ? m_camera.SetMovementToggle(3, 1) : m_camera.SetMovementToggle(3, 0);
-
-
-	const float movespeedIncr = 1;
-
-	if (m_pInput->VIsKeyDown(VK_ADD) && toggleMove)
-	{
-		m_camera.SetMovementSpeed(movespeed += movespeedIncr);
-		toggleMove = false;
-	}
-	if (m_pInput->VIsKeyDown(VK_SUBTRACT) && toggleMove)
-	{
-		m_camera.SetMovementSpeed(movespeed -= movespeedIncr);
-		toggleMove = false;
-	}
-
-	if (!m_pInput->VIsKeyDown(VK_ADD) && !m_pInput->VIsKeyDown(VK_SUBTRACT))
-	{
-		toggleMove = true;
-	}
-
-	/* Camera Rotate */
-	const float lookBase = 1.f / 1000.f;
-	const float lookSpeed = lookBase * time.dtMS;
-
-	if (m_pInput->MouseMoved())
-	{
-		m_camera.AdjustHeadingPitch(m_pInput->m_mousePoint.x * lookSpeed, m_pInput->m_mousePoint.y * lookSpeed);
-	}
-	else if (m_pInput->VIsKeyDown('Q'))
-	{
-		m_camera.AdjustHeadingPitch(-lookSpeed,0);
-	}
-	else if (m_pInput->VIsKeyDown('E'))
-	{
-		m_camera.AdjustHeadingPitch(lookSpeed, 0);
-	}
-	else if (m_pInput->VIsKeyDown('R'))
-	{
-		m_camera.AdjustHeadingPitch(0, -lookSpeed);
-	}
-	else if (m_pInput->VIsKeyDown('F'))
-	{
-		m_camera.AdjustHeadingPitch(0, lookSpeed);
-	}
-
-	m_camera.Update(time);
-
-	//m_pCuller->Construct(100, TMatrixTranspose(m_camera.GetProjectionMatrix()), TMatrixTranspose(m_camera.GetViewMatrix()));	// unused at the moment
-
-	if (FAILED(hr))
-	{
-		PrintError(AT, "failed to map subresource");
-	}
-
-	/**********************
-	--- Update cbuffers ---
-	***********************/
 	/* Camera */
 	FMAT4X4 world;
 	TMatrixIdentity(world);
 
-	cbCamera.mWVP				= m_camera.GetVPMatrix();
-	cbCamera.mView				= m_camera.GetViewMatrix();
-	cbCamera.mProjection		= m_camera.GetProjectionMatrix();
-	cbCamera.mWorld				= world;
-	cbCamera.cameraPos			= m_camera.GetPosition();
-	cbCamera.cameraDir			= m_camera.GetEyeDir();
-	cbCamera.right				= m_camera.GetRight();
-	cbCamera.up					= m_camera.GetUp();
-	cbCamera.mViewInverse		= m_camera.m_inverseViewMatrix;
+	cbCamera.mWVP = m_camera.GetVPMatrix();
+	cbCamera.mView = m_camera.GetViewMatrix();
+	cbCamera.mProjection = m_camera.GetProjectionMatrix();
+	cbCamera.mWorld = world;
+	cbCamera.cameraPos = m_camera.GetPosition();
+	cbCamera.cameraDir = m_camera.GetEyeDir();
+	cbCamera.right = m_camera.GetRight();
+	cbCamera.up = m_camera.GetUp();
+	cbCamera.mViewInverse = m_camera.m_inverseViewMatrix;
 	cbCamera.mProjectionInverse = m_camera.m_inverseProjectionMatrix;
-	cbCamera.mWVPInverse		= m_camera.m_inverseWVP;
-	cbCamera.mRotation			= m_camera.m_rotationMatrix;
-
-	//	FMAT4X4	m_rotationMatrix;
-	//FMAT4X4 m_inverseViewMatrix;
-	//FMAT4X4 m_inverseProjectionMatrix;
-	//FMAT4X4 m_inverseWVP;
-	//FMAT4X4	m_viewProjectionMatrix;
+	cbCamera.mWVPInverse = m_camera.m_inverseWVP;
+	cbCamera.mRotation = m_camera.m_rotationMatrix;
 
 	hr = m_pDriver->MapSubResource(m_pCameraCB->GetResource(), cbCamera);
 	if (FAILED(hr))
@@ -467,52 +567,161 @@ bool VoxelApp::VFrame(Time time)
 		PrintError(AT, "failed to map subresource");
 	}
 
-	ID3D11Buffer* cbuffers[] = { (ID3D11Buffer*)m_pCameraCB->GetResource(), (ID3D11Buffer*)m_pWindowCB->GetResource(), (ID3D11Buffer*)m_pVoxelCB->GetResource() };
+	/* Octree Matrices */
+	FVEC4 aabbMin			= FVEC4(0, 0, 0, 0);// FVEC4(128, 128, 128, 0) * -1;
+	FVEC4 aabbMax			= FVEC4(256, 256, 256, 1);
+	FMAT4X4 octreeToWorld	= TranslateMatrix(aabbMin + aabbMax);
 
-	m_pDriver->GetContext()->VSSetConstantBuffers(0, 2, cbuffers);
-	m_pDriver->GetContext()->GSSetConstantBuffers(0, 2, cbuffers);
-	m_pDriver->GetContext()->PSSetConstantBuffers(0, 2, cbuffers);
-	m_pDriver->GetContext()->CSSetConstantBuffers(0, 3, cbuffers);
+	FVEC2 toViewport			= FVEC2(2.0f / VGetResolution().width, 2.0f / VGetResolution().height);
+	FVEC4 scale					= FVEC4(toViewport.x, toViewport.y, 1.0f, 1.0f);
+	FMAT4X4 viewportToCamera	= m_camera.m_inverseProjectionMatrix * TranslateMatrix(FVEC4(-1.f, -1.f, -1.f, 1.f)) * ScaleMatrix(scale);
 
-	/* Draw */
-	m_pDriver->BeginScene();
+	FMAT4X4 worldToCamera	= m_camera.WorldToCamera();
+	FMAT4X4 toWorld			= worldToCamera * octreeToWorld;
+	FXMVECTOR translate		= XMVector4Transform(FXMVECTOR(FVEC4(1.f, 1.f, 1.f, 1.f)), XMMatrixInverse(&XMMatrixDeterminant(toWorld), toWorld));
+	XMMATRIX cameraToOctree = XMMatrixTranslation(translate.m128_f32[0], translate.m128_f32[1], translate.m128_f32[2]);
+	FVEC3 pixel				= Cross(FVEC3(toWorld.m[0][0], toWorld.m[1][0], toWorld.m[2][0]), FVEC3(toWorld.m[0][1], toWorld.m[1][1], toWorld.m[2][1]));
 
+	//ZeroMemory(&cbOctreeMatrices, sizeof(CBOctreeMatrices));
+	cbOctreeMatrices.pixelInOctree		= TVectorLength(pixel);
+	cbOctreeMatrices.viewportToCamera	= viewportToCamera;
+	cbOctreeMatrices.cameraToOctree		= XMMatrixInverse(&XMMatrixDeterminant(octreeToWorld), octreeToWorld);
 
+	hr = m_pDriver->MapSubResource(m_pOctreeMatrices->GetResource(), cbOctreeMatrices);
+	if (FAILED(hr))
+	{
+		PrintError(AT, "failed to map subresource");
+	}
 
-	// rasterize deferred
-	m_pDebugRenderer->VDraw(m_pDriver, m_pDebugVBuffer, m_pTerrainIBuffer);
-	// raycast deferred
-	// push svo on gpu
-	unsigned int initialCounts = -1;
-	ID3D11UnorderedAccessView * uavs[] = { m_pVoxelBuffer->GetUAV(), m_pNodeBuffer->GetUAV() };
-	m_pDriver->GetContext()->CSSetUnorderedAccessViews(0, 2, uavs, NULL);
+	ID3D11Buffer* cbuffers[] = {	(ID3D11Buffer*)m_pCameraCB->GetResource(),
+									(ID3D11Buffer*)m_pWindowCB->GetResource(),
+									(ID3D11Buffer*)m_pVoxelCB->GetResource(),
+									(ID3D11Buffer*)m_pOctreeMatrices->GetResource() };
 
-	m_pRayCaster->VDraw(m_pDriver, nullptr);
-
-	// finalize deferred by merging the different targets
-	m_pBackBufferDeferred->VDraw(m_pDriver, nullptr);
-
-	FVEC3 cpos = m_camera.GetPosition();
-	FVEC3 cdir = m_camera.GetEyeDir();
-
-	std::wostringstream woss;
-	woss << "Camera::Position = " << cpos.x << ":" << cpos.y << ":" << cpos.z << "\n" << "Camera::Direction = " << cdir.x << ":" << cdir.y << ":" << cdir.z << "\nCamera::Speed = " << m_camera.GetMovementSpeed();
-	std::wstring ctext = woss.str();
-
-	m_pFontWrapper->DrawString(m_pDriver->GetContext(), ctext.c_str(), 14.f, 10, 10, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);
-
-	std::wostringstream foss;
-	foss << "FPS = " << fps << "\ndt = " << time.dtMS;
-	std::wstring uitext = foss.str();
-
-	m_pFontWrapper->DrawString(m_pDriver->GetContext(), uitext.c_str(), 14.f, 10, 60, 0xffff1612, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE);
-
-	//ID3D11RenderTargetView* empty = nullptr;
-	//m_pDriver->SetRenderTargets(&empty, 1);
-
-	return m_pDriver->EndScene();
+	/* Set Cbuffers */
+	m_pDriver->GetContext()->VSSetConstantBuffers(0, 4, cbuffers);
+	m_pDriver->GetContext()->GSSetConstantBuffers(0, 4, cbuffers);
+	m_pDriver->GetContext()->PSSetConstantBuffers(0, 4, cbuffers);
+	m_pDriver->GetContext()->CSSetConstantBuffers(0, 4, cbuffers);
 }
 
+void VoxelApp::UpdateRenderState(void)
+{
+	// Rasterizer State Updates
+	if (ToggleOnKey(VK_F1, toggleCull))
+	{
+		m_cullMode == D3D11_CULL_BACK ? m_cullMode = D3D11_CULL_NONE : m_cullMode = D3D11_CULL_BACK;
+		SetCullMode(m_cullMode);
+	}
+
+	if (ToggleOnKey(VK_F2, toggleFill))
+	{
+		m_fillMode == D3D11_FILL_SOLID ? m_fillMode = D3D11_FILL_WIREFRAME : m_fillMode = D3D11_FILL_SOLID;
+		SetFillMode(m_fillMode);
+	}
+
+	// Render State Update
+	if (ToggleOnKey(TOGGLE_RASTERIZE, toggleRasterize))
+	{
+		drawRasterized = !drawRasterized;
+	}
+
+	if (ToggleOnKey(TOGGLE_RAYCAST, toggleRayCast))
+	{
+		drawRayCast = !drawRayCast;
+	}
+}
+
+void VoxelApp::UpdateCamera(const Time& _time)
+{
+	// WASD movement
+	KeyPress(CAMERA_FORWARD)? m_camera.SetMovementToggle(0, 1) : m_camera.SetMovementToggle(0, 0);
+	KeyPress(CAMERA_LEFT)	? m_camera.SetMovementToggle(2, -1) : m_camera.SetMovementToggle(2, 0);
+	KeyPress(CAMERA_BACK)	? m_camera.SetMovementToggle(1, -1) : m_camera.SetMovementToggle(1, 0);
+	KeyPress(CAMERA_RIGHT)	? m_camera.SetMovementToggle(3, 1) : m_camera.SetMovementToggle(3, 0);
+
+	// Set Camera Move Speed
+	if (ToggleOnKey(CAMERA_SPEED_INCREMENT, toggleMove))
+	{
+		if (m_camera.GetMovementSpeed() >= CAMERA_SPEED_MAX)
+		{
+			m_camera.SetMovementSpeed(CAMERA_SPEED_MAX);
+		}
+		else
+		{
+			float incr = movespeed * 0.01;
+			m_camera.SetMovementSpeed(movespeed += incr);
+		}
+		
+	}
+	if (ToggleOnKey(CAMERA_SPEED_DECREMENT, toggleMove))
+	{
+		if (m_camera.GetMovementSpeed() <= CAMERA_SPEED_MIN)
+		{
+			m_camera.SetMovementSpeed(CAMERA_SPEED_MIN);
+		}
+		else
+		{
+			float decr = -movespeed * 0.01;
+			m_camera.SetMovementSpeed(movespeed += decr);
+		}
+	}
+	// Reset Camera Move Speed
+	if (ToggleOnKey(CAMERA_SPEED_RESET, toggleMove))
+	{
+		m_camera.SetMovementSpeed(1);
+	}
+
+	/* Camera Rotate */
+	const float lookBase = 1.f / 1000.f;
+	const float lookSpeed = lookBase * _time.dtMS;
+
+	if (m_pInput->MouseMoved())
+	{
+		m_camera.AdjustHeadingPitch(m_pInput->m_mousePoint.x * lookSpeed, m_pInput->m_mousePoint.y * lookSpeed);
+	}
+	else if (KeyPress(CAMERA_ROTATE_LEFT))
+	{
+		m_camera.AdjustHeadingPitch(-lookSpeed, 0);
+	}
+	else if (KeyPress(CAMERA_ROTATE_RIGHT))
+	{
+		m_camera.AdjustHeadingPitch(lookSpeed, 0);
+	}
+	else if (KeyPress(CAMERA_ROTATE_UP))
+	{
+		m_camera.AdjustHeadingPitch(0, -lookSpeed);
+	}
+	else if (KeyPress(CAMERA_ROTATE_DOWN))
+	{
+		m_camera.AdjustHeadingPitch(0, lookSpeed);
+	}
+
+	m_camera.Update(_time);
+}
+
+bool VoxelApp::KeyPress(unsigned int _key)
+{
+	return m_pInput->VIsKeyDown(_key);
+}
+
+bool VoxelApp::ToggleOnKey(unsigned int _key, bool& _toggle)
+{
+	// key pressed and we can toggle
+	if (KeyPress(_key) && _toggle)
+	{
+		_toggle = false;
+		return true;
+	}
+	// key not pressed - reset toggle
+	if (!KeyPress(_key))
+	{
+		_toggle = true;		
+	}
+
+	// toggle is false - ie keypress is continous - do not toggle in this case
+	return false;
+}
 
 Resolution VoxelApp::VGetResolution()const
 {
@@ -547,35 +756,12 @@ void VoxelApp::SetRenderType(RENDER_TYPE _renderType)
 
 }
 
-// some weird bug that keeps culling until toggled once - fix!
-// note: bug seems to be caused by wireframe mode
-void VoxelApp::ToggleCullMode()
+void VoxelApp::SetCullMode(const D3D11_CULL_MODE& _mode)
 {
-	if (m_cullMode == D3D11_CULL_BACK)
-	{
-		printf("[Cull Mode] = None\n");
-		m_cullMode = D3D11_CULL_NONE;
-	}
-	else
-	{
-		printf("[Cull Mode] = Back\n");
-		m_cullMode = D3D11_CULL_BACK;
-	}
-
-	m_pDriver->SetRasterizerState(D3D11_CULL_NONE, D3D11_FILL_SOLID);	// bug temp solution: just force no cull
+	m_pDriver->SetRasterizerState(_mode, m_fillMode);
 }
 
-void VoxelApp::ToggleFillMode()
+void VoxelApp::SetFillMode(const D3D11_FILL_MODE& _mode)
 {
-	if (m_fillMode == D3D11_FILL_SOLID)
-	{
-		printf("[Fill Mode] = Wireframe\n");
-		m_fillMode = D3D11_FILL_WIREFRAME;
-	}
-	else
-	{
-		printf("[Fill Mode] = Solid\n");
-		m_fillMode = D3D11_FILL_SOLID;
-	}
-	m_pDriver->SetRasterizerState(D3D11_CULL_NONE, D3D11_FILL_SOLID);	// bug temp solution: just force no cull
+	m_pDriver->SetRasterizerState(m_cullMode, _mode);
 }

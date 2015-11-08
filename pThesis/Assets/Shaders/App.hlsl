@@ -50,12 +50,31 @@ cbuffer cbVoxel : register(b2)
 	uint rootIndex;		// root pointer for Node buffer
 };						// = 16 bytes
 
-cbuffer Constrictions : register(b3)
+cbuffer CBOctreeMatrices : register(b3)
+{
+	float4x4	viewportToCamera;
+	float4x4	cameraToOctree;
+	/*float4x4	octreeToWorld;
+
+	float4x4	worldToOctree;
+	float4x4	OctreeToWorld;
+
+	float4x4	octreeToViewPort;
+	float4x4	viewportToOctree;
+
+	float3		cameraPosition;*/
+	float		pixelInOctree;
+	float3		padding4;
+};
+
+cbuffer Constrictions : register(b4)
 {
 	float depthDivider;	// 4
 	uint  NLoD;			// 4
 	uint2 padding3;		// 8
 };						// = 16 bytes
+
+
 
 
 struct Volume_Color
@@ -88,19 +107,43 @@ struct Node
 {
 	uint dataPtr;	// 4
 	uint basePtr;	// 4	
-	uint parentPtr;	// 4
 	int children;	// 4
-	int  level;		// 4
-};					// = 20 bytes
+};					// = 12 bytes
 
 struct Ray						// 48 bytes
 {
 	float3 origin;			// 12 bytes
-	float3 direction;		// 12 bytes
-};							// 24 bytes
+	float origin_sz;		// 4
+	float3 direction;		// 12 bytes	
+	float direction_sz;		// 4
+};							// 32 bytes
 
+static const int c_popc8LUT[256] =
+{
+	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+};
 
-RWStructuredBuffer<TVoxel>Voxels		: register(u0);
+int popc8(uint _mask)
+{
+	return c_popc8LUT[_mask & 0xFFu];
+}
+
+RWStructuredBuffer<TVoxel>	Voxels		: register(u0);
 RWStructuredBuffer<Node>	Nodes		: register(u1);
 
 //bool IsLeaf(Node _node)
