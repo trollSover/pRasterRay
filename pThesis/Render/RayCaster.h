@@ -2,10 +2,18 @@
 
 #include "Renderer.h"
 
+#include "../CoreSystems/CoreStd.h"
+#include "../CoreSystems/DXDriver.h"
+
+#include "Shader.h"
+#include "Render_Create.h"
+
 class RayCaster
 	: public IRenderer
 {
 private:
+	
+
 	Shader* m_pSinglePassVoxelCS;
 
 	ID3D11SamplerState* m_pSampler;

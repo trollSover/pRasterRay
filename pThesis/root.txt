@@ -1,25 +1,25 @@
 root has 4 children
-address			= 156009
+address			= 2099177
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
 child: 0 has 4 children
-address			= 156005
+address			= 2099173
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
-child: 1 has 7 children
-address			= 156006
-child mask -701232901	= 11010110001101000000100011111011
-children		= 11111011
+child: 1 has 4 children
+address			= 2099174
+child mask 27265075	= 00000001101000000000100000110011
+children		= 00110011
 
 child: 4 has 4 children
-address			= 156007
+address			= 2099175
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
-child: 5 has 7 children
-address			= 156008
-child mask -1027176257	= 11000010110001101000100010111111
-children		= 10111111
+child: 5 has 4 children
+address			= 2099176
+child mask 27265075	= 00000001101000000000100000110011
+children		= 00110011
 

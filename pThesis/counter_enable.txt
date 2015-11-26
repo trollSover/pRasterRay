@@ -1,0 +1,163 @@
+### TIMING ###
+#CSBusy						#NOT SUPPORTED BY 5800
+#CSTime						#NOT SUPPORTED BY 5800
+DepthStencilTestBusy		#Percentage of GPUTime spent performing depth and stencil tests.
+#DSBusy						#NOT SUPPORTED BY 5800
+#DSTime						#NOT SUPPORTED BY 5800
+GPUTime						#Time, in milliseconds, this API call took to execute on the GPU. Does not include time that draw calls are processed in parallel.
+GPUBusy						#The percentage of time GPU was busy
+#GSBusy						#NOT SUPPORTED BY 5800
+#GSTime						#NOT SUPPORTED BY 5800
+#HSBusy						#NOT SUPPORTED BY 5800
+#HSTime						#NOT SUPPORTED BY 5800
+#InterpBusy					#Percentage of GPUTime that the interpolator is busy.
+PrimitiveAssemblyBusy		#Percentage of GPUTime that primitive assembly (clipping and culling) is busy. High values may be caused by having many small primitives; mid to low values may indicate pixel shader or output buffer bottleneck.
+#PSBusy						#NOT SUPPORTED BY 5800
+#PSTime						#NOT SUPPORTED BY 5800
+ShaderBusy					#The percentage of GPUTime that the shader unit is busy.
+ShaderBusyCS				#The percentage of work done by shader units for CS.
+#ShaderBusyDS
+#ShaderBusyGS
+#ShaderBusyHS
+ShaderBusyPS				#The percentage of work done by shader units for PS.
+ShaderBusyVS				#The percentage of work done by shader units for VS.
+#TessellatorBusy
+#TexUnitBusy
+#VSBusy						#NOT SUPPORTED BY 5800
+#VSTime						#NOT SUPPORTED BY 5800
+
+### VERTEXSHADER ###
+VertexMemFetched			#Number of bytes read from memory due to vertex cache miss.
+VertexMemFetchedCost		#The percentage of GPUTime that is spent fetching from vertex memory due to cache miss. To reduce this, improve vertex reuse or use smaller vertex formats.
+VSALUBusy					#The percentage of GPUTime ALU instructions are processed by the VS.
+#VSALUEfficiency
+#VSALUInstCount
+#VSALUTexRatio
+#VSSALUBusy					#NOT SUPPORTED BY 5800
+#VSSALUInstCount
+#VSTexBusy
+#VSTexInstCount
+#VSVALUBusy					#NOT SUPPORTED BY 5800
+#VSVALUInstCount
+VSVerticesIn				#The number of vertices processed by the VS.
+
+### PRIMITIVEASSEMBLY ###
+ClippedPrims				#The number of primitives that required one or more clipping operations due to intersecting the view volume or user clip planes.
+CulledPrims					#The number of culled primitives. Typical reasons include scissor, the primitive having zero area, and back or front face culling.
+PAPixelsPerTriangle			#The ratio of rasterized pixels to the number of triangles after culling. This does not account for triangles generated due to clipping.
+PAStalledOnRasterizer		#Percentage of GPUTime that primitive assembly waits for rasterization to be ready to accept data. This roughly indicates the percentage of time the pipeline is bottlenecked by pixel operations.
+PrimitivesIn
+
+### PIXELSHADER ###
+PSALUBusy					#The percentage of GPUTime ALU instructions are processed by the PS.
+#PSALUEfficiency
+#PSALUInstCount
+#PSALUTexRatio
+PSExportStalls				#Percentage of GPUTime that PS output is stalled. Should be zero for PS or further upstream limited cases; if not zero, indicates a bottleneck in late z testing or in the color buffer.
+PSPixelsIn					#The number of pixels processed by the PS. Does not count pixels culled out by early z or stencil tests.
+PSPixelsOut					#The number of pixels exported from shader to color buffers. Does not include killed or alpha-tested pixels. If there are multiple render targets, each receives one export, so this is 2 for 1 pixel written to two RTs.
+#PSSALUBusy					#NOT SUPPORTED BY 5800
+#PSSALUInstCount			#NOT SUPPORTED BY 5800
+#PSTexBusy
+#PSTexInstCount
+#PSVALUBusy					#NOT SUPPORTED BY 5800
+#PSVALUInstCount			#NOT SUPPORTED BY 5800
+
+### COMPUTESHADER ###
+CSALUBusy						#The percentage of GPU Time ALU instructions are processed by the CS.
+CSALUFetchRatio					#The ratio of ALU to fetch instructions. This can be tuned to match the target hardware.
+CSALUInsts						#The number of ALU instructions executed in the CS. Affected by the flow control.
+#CSALUPacking
+#CSALUStalledByLDS				#The percentage of GPUTime ALU units are stalled by the LDS input queue being full or the output queue being not ready. If there are LDS bank conflicts, reduce them. Otherwise, try reducing the number of LDS accesses if possible. Value range: 0% (optimal) to 100% (bad).
+CSCacheHit						#The percentage of fetches from the global memory that hit the texture cache.
+#CSCompletePath
+#CSFastPath
+#CSFetchInsts					#Average number of fetch instructions executed in the CS per execution. Affected by the flow control.
+#CSFetchSize					#NOT SUPPORTED BY 5800
+#CSFlatLDSInsts					#NOT SUPPORTED BY 5800
+#CSFlatVMemInsts				#NOT SUPPORTED BY 5800
+#CSGDSInsts						#NOT SUPPORTED BY 5800
+#CSLDSBankConflict
+#CSLDSFetchInsts
+#CSLDSWriteInsts				#NOT SUPPORTED BY 5800
+#CSMemUnitBusy					#NOT SUPPORTED BY 5800
+#CSMemUnitStalled				#NOT SUPPORTED BY 5800
+#CSPathUtilization
+#CSSALUBusy						#NOT SUPPORTED BY 5800
+#CSSALUInsts					#NOT SUPPORTED BY 5800
+#CSSFetchInsts					#NOT SUPPORTED BY 5800
+CSTexBusy						#The percentage of GPUTime texture instructions are processed by the CS.
+#CSThreadGroups					#NOT SUPPORTED BY 5800
+CSThreads						#The number of CS threads processed by the hardware.
+#CSVALUBusy						#NOT SUPPORTED BY 5800
+#CSVALUInsts					#NOT SUPPORTED BY 5800
+#CSVALUUtilization				#NOT SUPPORTED BY 5800
+#CSVFetchInsts					#NOT SUPPORTED BY 5800
+#CSVWriteInsts					#NOT SUPPORTED BY 5800
+#CSWavefronts
+CSWriteInsts					#The average number of write instructions executed in compute shader per execution. Affected by flow control.
+#CSWriteSize					#NOT SUPPORTED BY 5800
+#CSWriteUnitStalled				#NOT SUPPORTED BY 5800
+
+### DEPTHANDSTENCIL ###
+#HiZQuadsCulled						#Percentage of quads that did not have to continue on in the pipeline after HiZ. They may be written directly to the depth buffer, or culled completely. Consistently low values here may suggest that the Z-range is not being fully utilized.
+#HiZTilesAccepted					#Percentage of tiles accepted by HiZ and will be rendered to the depth or color buffers.
+PostZQuads							#Percentage of quads for which the pixel shader will run and may be PostZ tested.
+#PostZSamplesFailingS
+#PostZSamplesFailingZ
+#PostZSamplesPassing
+PreZQuadsCulled						#Percentage of quads rejected based on the detailZ and earlyZ tests.
+PreZSamplesFailingS					#Number of samples tested for Z before shading and failed stencil test.
+PreZSamplesFailingZ					#Number of samples tested for Z before shading and failed Z test.
+PreZSamplesPassing					#Number of samples tested for Z before shading and passed.
+PreZTilesDetailCulled				#Percentage of tiles rejected because the associated prim had no contributing area.
+ZUnitStalled						#Percentage of GPUTime the depth buffer spends waiting for the color buffer to be ready to accept data. High figures here indicate a bottleneck in color buffer operations.
+
+### COLORBUFFER ###
+CBMemRead			#Number of bytes read from the color buffer.
+CBMemWritten		#Number of bytes written to the color buffer.
+CBSlowPixelPct		#Percentage of pixels written to the color buffer using a half-rate or quarter-rate format.
+
+### GLOBALMEMORY ###
+#CompletePath
+#FastPath					#The total kilobytes written to the global memory through the FastPath which only support basic operations: no atomics or sub-32 bit types. This is an optimized path in the hardware.
+#FetchSize					#The total kilobytes fetched from the video memory. This is measured with all extra fetches and any cache or memory effects taken into account.
+#FetchUnitBusy				#The percentage of GPUTime the Fetch unit is active. This is measured with all extra fetches and any cache or memory effects taken into account.
+#FetchUnitStalled			#The percentage of GPUTime the Fetch unit is stalled. Try reducing the number of fetches or reducing the amount per fetch if possible.
+#CacheHit					#The percentage of fetches from the global memory that hit the texture cache.
+#MemUnitBusy					#The percentage of GPUTime the memory unit is active. The result includes the stall time (MemUnitStalled). This is measured with all extra fetches and writes and any cache or memory effects taken into account. Value range: 0% to 100% (fetch-bound).
+#MemUnitStalled				#The percentage of GPUTime the memory unit is stalled. Try reducing the number or size of fetches and writes if possible. Value range: 0% (optimal) to 100% (bad).
+#PathUtilization			#The percentage of bytes written through the FastPath or CompletePath compared to the total number of bytes transferred over the bus. To increase the path utilization, use the FastPath.
+#WriteSize					#The total kilobytes written to the video memory. This is measured with all extra fetches and any cache or memory effects taken into account.
+#WriteUnitStalled			#The percentage of GPUTime Write unit is stalled.
+
+### D3D11 ###
+#CInvocations				#Number of primitives that were sent to the rasterizer.
+#CPrimitives					#Number of primitives that were rendered.
+#CSInvocations				#Number of times a compute shader was invoked.
+D3DGPUTime					#Time spent in GPU
+#DSInvocations
+#GSInvocation
+#GSPrimitives
+#HSInvocations
+#IAPrimitives				#Number of primitives read by the input assembler.
+#IAVertices					#Number of vertices read by input assembler.
+Occlusion					#Get the number of samples that passed the depth and stencil tests.
+OcclusionPredicate			#Did any samples pass the depth and stencil tests?
+#OverflowPred				#Determines if any of the streaming output buffers overflowed.
+#OverflowPred_S0
+#OverflowPred_S1
+#OverflowPred_S2
+#OverflowPred_S3
+#PrimsStorageNeed
+#PrimsStorageNeed_S0
+#PrimsStorageNeed_S1
+#PrimsStorageNeed_S2
+#PrimsStorageNeed_S3
+PrimsWritten				#Number of primitives written to the stream-output buffers.
+#PrimsWritten_S0
+#PrimsWritten_S1
+#PrimsWritten_S2
+#PrimsWritten_S3
+PSInvocations				#Number of times a pixel shader was invoked.
+VSInvocations				#Number of times a vertex shader was invoked.

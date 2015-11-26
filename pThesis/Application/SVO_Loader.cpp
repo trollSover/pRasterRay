@@ -46,15 +46,20 @@ bool SVO_Loader::VLoad(const std::string& _file)
 		return false;
 	}
 
+	int vsize = sizeof(VoxelData<NC>);
+	int ncsize = sizeof(NC);
+
 	VoxelData<NC> dIn;
 	for (size_t i = 0; i < m_header.numData; ++i)
 	{
 		ReadData(dataIn, dIn);
 		//dIn.m_data.c = Normalize(dIn.m_data.c);
 		FVEC3 c = FVEC3(dIn.m_data.c.x, dIn.m_data.c.y, dIn.m_data.c.z);
-		c = Normalize(c);
-		dIn.m_data.c = FVEC4(c.x, c.y, c.z, 1);
-
+		//if (TVectorLength(c) > 0)
+		//{
+		//	c = Normalize(c);
+		//	dIn.m_data.c = FVEC4(c.x, c.y, c.z, 1);
+		//}
 		m_voxels.push_back(dIn);
 
 

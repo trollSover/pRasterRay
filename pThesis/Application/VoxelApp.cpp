@@ -29,10 +29,21 @@ VoxelApp::~VoxelApp()
 	SAFE_DELETE(m_pBackBufferDeferred);
 	SAFE_DELETE(m_pInput);
 	SAFE_DELETE(m_pDriver);
+
+	//if (perfHandle != nullptr)
+	//{
+	//	bool freeLibOk = FreeLibrary(perfHandle);
+	//	if (!freeLibOk)
+	//	{
+	//		printf("failed to unload GPUPerfAPI\n");
+	//	}
+	//}
 }
 
 bool VoxelApp::VInit()
 {
+	/* Performance counter init */
+
 	drawRasterized	= true;
 	drawRayCast		= true;
 	drawUIHelp		= false;
@@ -48,6 +59,12 @@ bool VoxelApp::VInit()
 	if (!m_pDriver || !m_pDriver->Init(VGetResolution()))
 		return false;
 	else printf("DirectX driver ok/DirectX\n");
+
+#ifdef _PERFTRACK
+	m_renderloopPerfContext.Init(m_pDriver->GetPerfLibrary(), m_pDriver->GetDevice());
+#endif
+	//gpa_uint32 counter;
+	//m_renderloopPerfContext.m_pLibTable->getCounterIndex("D3DGPUTime", &counter);
 
 	m_eRenderType = RENDER_TYPE::RT_Debug;
 	SetRenderType(m_eRenderType);
@@ -197,7 +214,7 @@ bool VoxelApp::VInit()
 	std::vector<GPU_Voxel<NC>> voxs;
 
 	TNode* root = &m_svo.GetRoot();
-
+	int rtptr = m_svo.GetNodeList().size();
 	m_svo.GetSVO(*root, voxs);
 
 	double iso = 0.5;
@@ -211,13 +228,29 @@ bool VoxelApp::VInit()
 		TRIANGLE tri[5];
 		N = Polygonize(c, iso, tri);
 
-		for (int i = 0; i < N; ++i)
+		//for (int i = 0; i < N; ++i)
+		//{
+		//	FVEC4 color = (c.c[0] + c.c[1] + c.c[2]) / 3.f;
+ 	//		vertices.push_back(Vertex(tri[i].p[0], (c.n[0]), c.c[0]));
+		//	vertices.push_back(Vertex(tri[i].p[1], (c.n[1]), c.c[1]));
+		//	vertices.push_back(Vertex(tri[i].p[2], (c.n[5]), c.c[5]));
+		//}
+		if (N == 2)
 		{
-			FVEC4 color = (c.c[0] + c.c[1] + c.c[2]) / 3.f;
-			vertices.push_back(Vertex(tri[i].p[0], (c.n[i]), (color)));
-			vertices.push_back(Vertex(tri[i].p[1], (c.n[i]), (color)));
-			vertices.push_back(Vertex(tri[i].p[2], (c.n[i]), (color)));
+			vertices.push_back(Vertex(tri[0].p[0], (c.n[0]), c.c[0]));
+			vertices.push_back(Vertex(tri[0].p[1], (c.n[1]), c.c[1]));
+			vertices.push_back(Vertex(tri[0].p[2], (c.n[4]), c.c[4]));
+
+			vertices.push_back(Vertex(tri[1].p[0], (c.n[1]), c.c[1]));
+			vertices.push_back(Vertex(tri[1].p[1], (c.n[4]), c.c[4]));
+			vertices.push_back(Vertex(tri[1].p[2], (c.n[5]), c.c[5]));
 		}
+		else if (N == 0)
+		{
+
+		}
+		else
+			printf("what?");
 	}
 
 	m_svo.cells.clear();
@@ -248,7 +281,7 @@ bool VoxelApp::VInit()
 	m_camera.Update(Time());
 	m_pCuller = VNEW FrustumCulling();
 
-	m_pCuller->CheckVoxels(m_svo.m_svoLoader.m_nodes, rootPtr, ninds, FVEC3(gridLength, gridLength, gridLength) / 2);	// unused at the moment
+	//m_pCuller->CheckVoxels(m_svo.m_svoLoader.m_nodes, rootPtr, ninds, FVEC3(gridLength, gridLength, gridLength) / 2);	// unused at the moment
 
 	m_pTerrainVBuffer = VNEW D3DBuffer();
 
@@ -262,13 +295,13 @@ bool VoxelApp::VInit()
 		PrintError(AT, "failed to create vertex buffer");
 		return false;
 	}
-
-	m_pTerrainIBuffer = VNEW D3DBuffer();
-	if (!m_pTerrainIBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_INDEX, ninds.size(), sizeof(uint32_t), &ninds[0]))
-	{
-		PrintError(AT, "failed to create index buffer");
-		return false;
-	}
+	m_pTerrainIBuffer = nullptr;
+	//m_pTerrainIBuffer = VNEW D3DBuffer();
+	//if (!m_pTerrainIBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_INDEX, ninds.size(), sizeof(uint32_t), &ninds[0]))
+	//{
+	//	PrintError(AT, "failed to create index buffer");
+	//	return false;
+	//}
 
 	size_t nElements = m_svo.GetNodeList().size();
 	uint32_t sElement = sizeof(TNode);
@@ -288,7 +321,11 @@ bool VoxelApp::VInit()
 	m_pVoxelBuffer = VNEW D3DBuffer();
 
 	printf("(Voxel) ");
-	if (!m_pVoxelBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_SRV_UAV, nElements, sElement, &m_svo.m_svoLoader.m_voxels[0]))
+	std::vector<Voxel> voxels;
+	voxels.reserve(m_svo.m_svoLoader.m_voxels.size());
+	voxels.insert(voxels.end(), m_svo.m_svoLoader.m_voxels.begin(), m_svo.m_svoLoader.m_voxels.end());
+
+	if (!m_pVoxelBuffer->Init(m_pDriver->GetDevice(), BT_STRUCTURED, BB_SRV_UAV, voxels.size(), sizeof(Voxel), &voxels[0]))
 	{
 		PrintError(AT, "failed to create voxel buffer");
 		return false;
@@ -388,6 +425,9 @@ static float cMS;
 static float oMS;
 static float movespeed = 1;
 
+
+static gpa_uint32 currentWaitSessionID = 1;
+
 bool VoxelApp::VFrame(Time time)
 {
 	HRESULT hr = S_OK;
@@ -417,6 +457,10 @@ bool VoxelApp::VFrame(Time time)
 
 	// draw terrain
 	RenderGeometry();
+
+	// finalize deferred by merging the different targets
+	SetFillMode(D3D11_FILL_SOLID); // fill mode
+	m_pBackBufferDeferred->VDraw(m_pDriver, nullptr);
 	
 	// draw UI
 	RenderUI(time);
@@ -425,8 +469,9 @@ bool VoxelApp::VFrame(Time time)
 	SetFillMode(m_fillMode);
 	SetCullMode(m_cullMode);
 
-	/* End Draw */
+	///* End Draw */
 	return m_pDriver->EndScene();
+	//return frameOk;
 }
 
 void VoxelApp::RenderUI(const Time& _time)
@@ -437,8 +482,9 @@ void VoxelApp::RenderUI(const Time& _time)
 	const float fontSize = 16.0f;
 	const float indx = 10.0f;
 	float indy = 10.0f;
-
+	
 	std::wostringstream stream;
+	stream.precision(5);
 	std::wstring str;
 	stream << "Camera::Position\nx: " << cpos.x << "\ny: " << cpos.y << "\nz: " << cpos.z << "\n" <<
 			"Camera::Direction\nx: " << cdir.x << "\ny: " << cdir.y << "\nz: " << cdir.z <<
@@ -468,20 +514,126 @@ void VoxelApp::RenderUI(const Time& _time)
 	stream.str(std::wstring());
 	stream.flush();
 
+	//cbOctreeMatrices.pixelInOctree = TVectorLength(pixel);
+	//cbOctreeMatrices.viewportToCamera = viewportToCamera;
+	////cbOctreeMatrices.cameraToOctree		= XMMatrixInverse(&XMMatrixDeterminant(octreeToWorld), octreeToWorld);
+	//cbOctreeMatrices.cameraToOctree = XMMatrixInverse(&XMMatrixDeterminant(cameraToOctree), cameraToOctree);
+	FMAT4X4 cto = cbOctreeMatrices.cameraToOctree;
+	FMAT4X4 vtc = cbOctreeMatrices.viewportToCamera;
+	stream << "CameraToOctree\n";//
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			// fixed float size + add extra empty space if positive value
+			stream << std::fixed << cto.m[i][j] << (cto.m[i][j] < 0 ? "| " : " | ");
+		}
+		stream << "\n";
+	}
+	str = stream.str();
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 400, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	stream.str(std::wstring());
+	stream.flush();
+
+	stream << "ViewportToCamera\n";//
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			stream << std::fixed << vtc.m[i][j] << " | ";
+		}
+		stream << "\n";
+	}
+	str = stream.str();
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 700, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+	stream.str(std::wstring());
+	stream.flush();
+
+	const WCHAR* help = L"Press 'h' for control mappings";
+	m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+
 	if (drawUIHelp)
 	{
-		const WCHAR* help = L"Move: WASD\nLook: Mouse\nToggle Cull: F1\nToggle Fill: F2\nCamera Speed: Numpad +/-\nToggle Rasterize: 1\nToggle RayCast: 2";
-		m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
-	}
-	else
-	{
-		const WCHAR* help = L"Press 'h' for control mappings";
-		m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
+		const WCHAR* help = L"Move: WASD\nLook: Mouse\nToggle Cull: F1\nToggle Fill: F2\nCamera Speed: Numpad +/-\nToggle Rasterize: 1\nToggle RayCast: 2\nCamera Reset: Home";
+		m_pFontWrapper->DrawString(m_pDriver->GetContext(), help, fontSize, VGetResolution().width - 256, 10 + fontSize + 3, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
 	}
 }
 
+//#define GPUPERF
 void VoxelApp::RenderGeometry(void)
 {
+#ifdef _PERFTRACK
+	bool frameOk = true;
+
+	gpa_uint32 sessionID;
+
+	GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->beginSession(&sessionID));
+
+	gpa_uint32 numRequiredPasses;
+	GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->getPassCount(&numRequiredPasses));
+
+	for (gpa_uint32 i = 0; i < numRequiredPasses; ++i)
+	{
+		m_pDriver->BeginScene();
+
+		GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->beginPass());
+
+		GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->beginSample(0));
+
+		if (drawRasterized)
+		{
+			m_pDebugRenderer->VDraw(m_pDriver, m_pDebugVBuffer, m_pTerrainIBuffer);
+		}
+		else
+		{
+			// clear deferred rendertargets
+			RenderTarget* renderTargets[3];
+			m_pDriver->GetRenderTarget(RT_NORMAL, renderTargets[0]);
+			m_pDriver->GetRenderTarget(RT_DEPTH, renderTargets[1]);
+			m_pDriver->GetRenderTarget(RT_COLOR, renderTargets[2]);
+			ID3D11RenderTargetView* rtvs[3];
+			renderTargets[0]->GetView(*&rtvs[0]);
+			renderTargets[1]->GetView(*&rtvs[1]);
+			renderTargets[2]->GetView(*&rtvs[2]);
+			m_pDriver->ClearRenderTargets(rtvs, 3);
+		}
+
+		// raycast deferred
+		if (drawRayCast)
+		{
+			unsigned int initialCounts = -1;
+			ID3D11UnorderedAccessView * uavs[] = { m_pVoxelBuffer->GetUAV(), m_pNodeBuffer->GetUAV() };
+			m_pDriver->GetContext()->CSSetUnorderedAccessViews(0, 2, uavs, NULL);
+
+			m_pRayCaster->VDraw(m_pDriver, nullptr);
+		}
+
+		GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->endSample());
+
+		GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->endPass());
+	}
+
+	GPA_OPEN_SAFE(m_renderloopPerfContext.m_pLibTable->endSession());
+
+	bool ready = false;
+	if (sessionID != currentWaitSessionID)
+	{
+		GPA_Status status = m_renderloopPerfContext.m_pLibTable->isSessionReady(&ready, currentWaitSessionID);
+		while (status == GPA_STATUS_ERROR_SESSION_NOT_FOUND)
+		{
+			currentWaitSessionID++;
+			status = m_renderloopPerfContext.m_pLibTable->isSessionReady(&ready, currentWaitSessionID);
+		}
+
+	}
+	if (ready)
+	{
+		m_renderloopPerfContext.WriteSession(currentWaitSessionID, "counterResults.csv");
+		currentWaitSessionID++;
+	}
+
+#else
+
 	// rasterize deferred
 	if (drawRasterized)
 	{
@@ -510,11 +662,8 @@ void VoxelApp::RenderGeometry(void)
 
 		m_pRayCaster->VDraw(m_pDriver, nullptr);
 	}
+#endif
 
-
-	// finalize deferred by merging the different targets
-	SetFillMode(D3D11_FILL_SOLID); // fill mode
-	m_pBackBufferDeferred->VDraw(m_pDriver, nullptr);
 }
 
 void VoxelApp::UpdateUI(const Time& _time)
@@ -548,45 +697,120 @@ void VoxelApp::UpdateBuffers(void)
 	FMAT4X4 world;
 	TMatrixIdentity(world);
 
-	cbCamera.mWVP = m_camera.GetVPMatrix();
-	cbCamera.mView = m_camera.GetViewMatrix();
-	cbCamera.mProjection = m_camera.GetProjectionMatrix();
-	cbCamera.mWorld = world;
-	cbCamera.cameraPos = m_camera.GetPosition();
-	cbCamera.cameraDir = m_camera.GetEyeDir();
-	cbCamera.right = m_camera.GetRight();
-	cbCamera.up = m_camera.GetUp();
-	cbCamera.mViewInverse = m_camera.m_inverseViewMatrix;
-	cbCamera.mProjectionInverse = m_camera.m_inverseProjectionMatrix;
-	cbCamera.mWVPInverse = m_camera.m_inverseWVP;
-	cbCamera.mRotation = m_camera.m_rotationMatrix;
+	//cbCamera.mWVP				= TMatrixTranspose(m_camera.GetVPMatrix());
+	cbCamera.mWVP				= TMatrixTranspose(m_camera.GetViewMatrix() * m_camera.GetProjectionMatrix());
+	cbCamera.mView				= TMatrixTranspose(m_camera.GetViewMatrix());
+	cbCamera.mProjection		= TMatrixTranspose(m_camera.GetProjectionMatrix());
+	cbCamera.mWorld				= world;
+	cbCamera.cameraPos			= m_camera.GetPosition();
+	cbCamera.cameraDir			= m_camera.GetEyeDir();
+	cbCamera.right				= m_camera.GetRight();
+	cbCamera.up					= m_camera.GetUp();
+	cbCamera.mViewInverse		= XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mView), cbCamera.mView);
+	cbCamera.mProjectionInverse = XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mProjection), cbCamera.mProjection);
+	cbCamera.mWVPInverse		= XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mWVP), cbCamera.mWVP);
+	cbCamera.mRotation			= m_camera.m_rotationMatrix;
 
 	hr = m_pDriver->MapSubResource(m_pCameraCB->GetResource(), cbCamera);
 	if (FAILED(hr))
 	{
 		PrintError(AT, "failed to map subresource");
 	}
-
+	int vsize = sizeof(FVEC3);
 	/* Octree Matrices */
-	FVEC4 aabbMin			= FVEC4(0, 0, 0, 0);// FVEC4(128, 128, 128, 0) * -1;
-	FVEC4 aabbMax			= FVEC4(256, 256, 256, 1);
-	FMAT4X4 octreeToWorld	= TranslateMatrix(aabbMin + aabbMax);
+	//FVEC4 aabbMin = FVEC4(128, 128, 128, 0) * -1; // FVEC4(0, 0, 0, 0);// 
+	//FVEC4 aabbMax = FVEC4(128, 128, 128, 1);
+	float hsize = m_svo.m_svoLoader.m_header.gridlength / 2;
+	FVEC4 aabbMin = FVEC4(0, 0, 0, 0); 
+	//FVEC4 aabbMin = FVEC4(-hsize, -hsize, -hsize, 1);
+	FVEC4 aabbMax = FVEC4(hsize, hsize, hsize, 1);
+	
 
-	FVEC2 toViewport			= FVEC2(2.0f / VGetResolution().width, 2.0f / VGetResolution().height);
-	FVEC4 scale					= FVEC4(toViewport.x, toViewport.y, 1.0f, 1.0f);
-	FMAT4X4 viewportToCamera	= m_camera.m_inverseProjectionMatrix * TranslateMatrix(FVEC4(-1.f, -1.f, -1.f, 1.f)) * ScaleMatrix(scale);
+	//FVEC4 aabbMax = FVEC4(1,1,1,1);
+	FVEC4 offset = aabbMin + aabbMax;
 
-	FMAT4X4 worldToCamera	= m_camera.WorldToCamera();
+	FMAT4X4 octreeToWorld = TTranslateMatrix(offset);
+
+	FVEC3 scale					= FVEC3( FVEC2(2.f) / FVEC2(VGetResolution().width, VGetResolution().height), 1.f);	//X
+
+	FMAT4X4 worldToCamera = m_camera.GetViewMatrix();
 	FMAT4X4 toWorld			= worldToCamera * octreeToWorld;
-	FXMVECTOR translate		= XMVector4Transform(FXMVECTOR(FVEC4(1.f, 1.f, 1.f, 1.f)), XMMatrixInverse(&XMMatrixDeterminant(toWorld), toWorld));
-	XMMATRIX cameraToOctree = XMMatrixTranslation(translate.m128_f32[0], translate.m128_f32[1], translate.m128_f32[2]);
-	FVEC3 pixel				= Cross(FVEC3(toWorld.m[0][0], toWorld.m[1][0], toWorld.m[2][0]), FVEC3(toWorld.m[0][1], toWorld.m[1][1], toWorld.m[2][1]));
 
-	//ZeroMemory(&cbOctreeMatrices, sizeof(CBOctreeMatrices));
-	cbOctreeMatrices.pixelInOctree		= TVectorLength(pixel);
-	cbOctreeMatrices.viewportToCamera	= viewportToCamera;
-	cbOctreeMatrices.cameraToOctree		= XMMatrixInverse(&XMMatrixDeterminant(octreeToWorld), octreeToWorld);
 
+	FVEC3 pixel = Cross(FVEC3(toWorld.m[0][0], toWorld.m[1][0], toWorld.m[2][0]), FVEC3(toWorld.m[0][1], toWorld.m[1][1], toWorld.m[2][1]));
+
+	float dim = 256;
+	FVEC3 min, max;
+	max = FVEC3(dim, dim, dim);
+	
+	FVEC3 pos[] =
+	{
+		FVEC3(0, 0, 0),
+		FVEC3(1, 0, 0),
+		FVEC3(0, 1, 0),
+		FVEC3(1, 1, 0),
+		FVEC3(0, 0, 1),
+		FVEC3(1, 0, 1),
+		FVEC3(0, 1, 1),
+		FVEC3(1, 1, 1),
+	};
+	//printf("DEPTH: 0\n");
+	for (int i = 0; i < 8; ++i)
+	{
+		FVEC3 cmin, cmax;
+		cmin = min + (pos[i] * (dim * 0.5f));
+		cmax = cmin + (pos[7] * (dim * 0.5f));
+		//printf("child: %i\nMin{%.2f:%.2f:%.2f} \nMax{%.2f:%.2f:%.2f}\n", i, cmin.x, cmin.y, cmin.z, cmax.x, cmax.y, cmax.z);
+		//printf("DEPTH: 1\n");
+		for (int j = 0; j < 8; ++j)
+		{
+			FVEC3 dmin, dmax;
+			dmin = cmin + (pos[j] * (dim * 0.25f));
+			dmax = dmin + (pos[7] * (dim * 0.25f));
+			//printf("\tchild: %i\n\tMin{%.2f:%.2f:%.2f} \n\tMax{%.2f:%.2f:%.2f}\n", j, dmin.x, dmin.y, dmin.z, dmax.x, dmax.y, dmax.z);
+		}
+		
+	}
+	int a = 42;
+	/*
+	// Non-transposed matrices
+	/*cbOctreeMatrices.pixelInOctree		= TVectorLength(pixel);
+	cbOctreeMatrices.viewportToCamera	= TMatrixInverse(m_camera.GetProjectionMatrix()) * TMatrixTranspose(TTranslateMatrix(FVEC3(-1.f, -1.f, 0.f))) * TScaleMatrix(FVEC4(scale.x, scale.y, scale.z, 0));
+	cbOctreeMatrices.cameraToOctree		= TMatrixTranspose(TTranslateMatrix(FVEC3(1,1,1))) * TMatrixInverse( worldToCamera * octreeToWorld);
+*/
+	// AABB box
+	// Vec3 hi, lo
+	// maxDisp = 0.f + ?
+	// octreeToObject = Translate( Vec3( lo + hi ) * 0.5f ) * Scale( Vec3( hi - lo).max() + maxDisp * 2.f ) ) * Translate( Vec3(-0.5f) )
+	// octreeToWorld = 
+	// worldToCamera =
+	// -----------------------
+	// Matrix3 orient = 
+	// Matrix3 r =
+	// r.column[2] = Normalize( Camera::Forward )
+	// r.column[0] = Normalize( Cross( Camera::Up, r.column[2] ) )
+	// r.column[1] = Normalize( Cross( r.column[2], r.column[0] ) )
+	// -----------------------
+	// Vec3 pos = Transpose( orient ) * Camera::Position
+	// Matrix4 r =
+	// r.row[0] = { Vec4( orient.column[0], -pos.x ) }
+	// r.row[1] = { Vec4( orient.column[1], -pos.y ) }
+	// r.row[2] = { Vec4( orient.column[2], -pos.z ) }
+	// r.row[3] = { 0, 0, 0, 1 }
+	// ------------------------
+
+	// scale = Vec3( Vec2(2.f) / Vec2(Resolution), 1.f)
+	// viewportToCamera = Invert(Projection) * Translate( Vec3(-1,-1,0) ) * Scale(scale)
+	// cameraToOctree = Translate( Vec3(1.f) ) * Invert( (worldToCamera * octreeToWorld) )
+	// pixelInOctree =
+	cbOctreeMatrices.pixelInOctree = TVectorLength(pixel);
+	cbOctreeMatrices.viewportToCamera = TMatrixInverse(m_camera.GetProjectionMatrix()) * TTranslateMatrix(FVEC3(-1.f, -1.f, 0.f)) * TScaleMatrix(FVEC4(scale.x, scale.y, scale.z, 0));
+	cbOctreeMatrices.cameraToOctree = TTranslateMatrix(FVEC3(1, 1, 1)) * TMatrixInverse(worldToCamera * octreeToWorld);
+
+
+	//cbOctreeMatrices.viewportToCamera = TMatrixTranspose(cbOctreeMatrices.viewportToCamera);
+	//cbOctreeMatrices.cameraToOctree = TMatrixTranspose(cbOctreeMatrices.cameraToOctree);
+	
 	hr = m_pDriver->MapSubResource(m_pOctreeMatrices->GetResource(), cbOctreeMatrices);
 	if (FAILED(hr))
 	{
@@ -632,8 +856,17 @@ void VoxelApp::UpdateRenderState(void)
 	}
 }
 
+static bool toggleCameraReset = true;
+
 void VoxelApp::UpdateCamera(const Time& _time)
 {
+	// Camera Reset
+	if (ToggleOnKey(CAMERA_RESET_ALL, toggleCameraReset))
+	{
+		m_camera.SetMovementSpeed(1);
+		m_camera.SetPositionAndView(0, 0, 0, 0, 0);
+	}
+
 	// WASD movement
 	KeyPress(CAMERA_FORWARD)? m_camera.SetMovementToggle(0, 1) : m_camera.SetMovementToggle(0, 0);
 	KeyPress(CAMERA_LEFT)	? m_camera.SetMovementToggle(2, -1) : m_camera.SetMovementToggle(2, 0);
@@ -680,22 +913,35 @@ void VoxelApp::UpdateCamera(const Time& _time)
 	{
 		m_camera.AdjustHeadingPitch(m_pInput->m_mousePoint.x * lookSpeed, m_pInput->m_mousePoint.y * lookSpeed);
 	}
-	else if (KeyPress(CAMERA_ROTATE_LEFT))
+	if (KeyPress(CAMERA_ROTATE_LEFT))
 	{
 		m_camera.AdjustHeadingPitch(-lookSpeed, 0);
 	}
-	else if (KeyPress(CAMERA_ROTATE_RIGHT))
+	if (KeyPress(CAMERA_ROTATE_RIGHT))
 	{
 		m_camera.AdjustHeadingPitch(lookSpeed, 0);
 	}
-	else if (KeyPress(CAMERA_ROTATE_UP))
+	if (KeyPress(CAMERA_ROTATE_UP))
 	{
 		m_camera.AdjustHeadingPitch(0, -lookSpeed);
 	}
-	else if (KeyPress(CAMERA_ROTATE_DOWN))
+	if (KeyPress(CAMERA_ROTATE_DOWN))
 	{
 		m_camera.AdjustHeadingPitch(0, lookSpeed);
 	}
+	if (KeyPress(CAMERA_UP))
+	{
+		FVEC3 p = m_camera.GetPosition();
+		p.y += 1 * _time.dtMS * m_camera.GetMovementSpeed();
+		m_camera.SetPositionAndView(p.x, p.y, p.z, 0, 0);
+	}
+	if (KeyPress(CAMERA_DOWN))
+	{
+		FVEC3 p = m_camera.GetPosition();
+		p.y -= 1 * _time.dtMS * m_camera.GetMovementSpeed();
+		m_camera.SetPositionAndView(p.x, p.y, p.z, 0, 0);
+	}
+	// update
 
 	m_camera.Update(_time);
 }
@@ -747,13 +993,12 @@ LRESULT VoxelApp::VApplicationProc(HWND _hwnd, UINT _umsg, WPARAM _wparam, LPARA
 	return 0;
 }
 
+// TODO: remove
 void VoxelApp::SetRenderType(RENDER_TYPE _renderType)
 {
 	assert(_renderType < RENDER_TYPE::RT_Unknown);
 
 	m_eRenderType = _renderType;
-	static const char* types[] = { "Rasterizer", "Raytracer", "Debug" };
-
 }
 
 void VoxelApp::SetCullMode(const D3D11_CULL_MODE& _mode)

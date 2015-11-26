@@ -19,7 +19,7 @@ struct OUTPUT
 OUTPUT main(INPUT input)
 {
 	OUTPUT output;
-	float3 origin = MortonDecode(Voxels[input.dataPtr].morton);
+	float3 origin = float3(1, 1, 1);// MortonDecode(Voxels[input.dataPtr].morton);
 
 	output.wposition = origin;
 	output.position = mul( float4(origin,1), g_WVP);

@@ -72,35 +72,37 @@ void Core::Run()
 
 	while (run)
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+
+			if (msg.message == WM_QUIT)
+			{
+				run = false;
+			}
 		}
-		else
+		//else
 		{			
-			//if (msg.message == WM_QUIT)
-			//{
-			//	run = false;
-			//}
+
 			//else
 			{		
 				m_pTimer->VUpdate();
 				Time dt = m_pTimer->VGetTime();			/* get time delta */
+				bool frameOk = m_pApplication->VFrame(dt);	/* update application */
 
-				run = m_pApplication->VFrame(dt);	/* update application */
-
-				if (!run)
+				if (!frameOk)
 				{
+					run = false;
 					PrintError(AT, "error encountered during rendering - shutting down");
 				}			
 			}			
 		}
 
-		if (msg.message == WM_QUIT)
-		{
-			run = false;
-		}
+		//if (msg.message == WM_QUIT)
+		//{
+		//	run = false;
+		//}
 		
 	}
 }

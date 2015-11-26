@@ -1,4 +1,7 @@
 #comment
-source Assets/Models/puget/_3
+#note: only the first encountered uncommented line will be processed
+
+#source Assets/Models/newtest/pugetHeight.bmp
+#source Assets/Models/puget/_3
 #source Assets/Models/puget/_1
-#source Assets/Models/puget/_0
+source Assets/Models/puget/_0

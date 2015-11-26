@@ -16,12 +16,24 @@ namespace VECTOR
 	{
 		/* Members */
 	public:
-		T x, y;
+		union
+		{
+			T values[2];
+			struct { T x, y; };
+		};
 		
 		/* Methods */
 	public:
 		/* Default constructor */
-		VEC2(T _x = 0, T _y = 0)
+		VEC2(void)
+			: x(0), y(0)
+		{	}
+
+		VEC2(T _v)
+			: x(_v), y(_v)
+		{	}
+
+		VEC2(T _x, T _y)
 			: x(_x), y(_y)
 		{ 	}
 
@@ -57,6 +69,9 @@ namespace VECTOR
 		/* Equals */
 		VEC2& operator	= (const VEC2& _v)	{ x = _v.x; y = _v.y; return *this; }
 
+		/* composite operators */
+		VEC2 operator / (const VEC2 _v) { return VEC2(x / _v.x, y / _v.y); }
+
 		/* Illegal scalar operations */
 		VEC2 operator +	(const T& _r) = delete;
 		VEC2 operator -	(const T& _r) = delete;
@@ -80,12 +95,28 @@ namespace VECTOR
 	{
 		/* Members */
 	public:
-		T x, y, z;
+		union
+		{
+			T values[3];
+			struct { T x, y, z; };
+		};
 
 		/* Methods */
 	public:
 		/* Default constructor */
-		VEC3(T _x = 0, T _y = 0, T _z = 0)
+		VEC3(void)
+			: x(0), y(0), z(0)
+		{	}
+
+		VEC3(const VEC2<T>& _vec, T _z)
+			: x(_vec.x), y(_vec.y), z(_z)
+		{	}
+
+		VEC3(T _v)
+			: x(_v), y(_v), z(_v)
+		{	}
+
+		VEC3(T _x, T _y, T _z)
 			:x(_x), y(_y), z(_z)
 		{	}
 
@@ -129,7 +160,8 @@ namespace VECTOR
 
 		/* DirectX conversions */
 #ifdef DXVECTOR
-		VEC3& operator = (const XMVECTOR& _v) { x = _v.m128_f32[0]; y = _v.m128_f32[1]; z = _v.m128_f32[2]; return *this; }
+		explicit operator XMVECTOR() { return XMLoadFloat3((XMFLOAT3*)this); }
+
 		operator XMFLOAT3() { return XMFLOAT3(x, y, z); }
 #endif
 	};
@@ -141,7 +173,11 @@ namespace VECTOR
 	{
 		/* Members */
 	public:
-		T x, y, z, w;
+		union
+		{
+			T values[4];
+			struct { T x, y, z, w; };
+		};		
 
 		/* Methods */
 	public:
@@ -197,18 +233,24 @@ namespace VECTOR
 #endif
 	};
 
-	/* Matrix4 template - row:column order
+	/* Matrix4 template - row:major order
 		#x, y : template */
 	template<typename T>
 	struct MATRIX4X4
 	{
 		/* Members */
 	public:
-		T m[4][4];
-
+		union
+		{
+			struct {T	m00, m01, m02, m03,
+						m10, m11, m12, m13,
+						m20, m21, m22, m23,
+						m30, m31, m32, m33;	};
+			T m[4][4];
+		};
 		/* Methods */
 	public:
-		MATRIX4X4()
+		MATRIX4X4(void)
 		{
 			for (uint32_t i = 0; i < 4; ++i)
 			{
@@ -305,6 +347,20 @@ namespace VECTOR
 			return *this;
 		}
 
+		bool operator==(const MATRIX4X4& _mat)
+		{
+			for (int i = 0; i < 4; ++i)
+				for (int j = 0; j < 4; ++j)
+					if (m[i][j] != _mat.m[i][j])
+						return false;
+			return true;
+		}
+
+		bool operator!=(const MATRIX4X4& _mat)
+		{
+			return !(*this == _mat);
+		}
+
 #ifdef DXVECTOR
 		operator XMMATRIX() { return XMLoadFloat4x4((XMFLOAT4X4*)&m); }
 		operator XMFLOAT4X4() { return XMFLOAT4X4(*m); }
@@ -317,7 +373,14 @@ namespace VECTOR
 			
 			return *this; 
 		}
-	
+
+		MATRIX4X4(const XMMATRIX& _mat)
+		{
+			for (int i = 0; i < 4; ++i)
+				for (int j = 0; j < 4; ++j)
+					m[i][j] = _mat.r[i].m128_f32[j];
+		}
+
 		//VEC3& operator = (const XMVECTOR& _v) { x = _v.m128_f32[0]; y = _v.m128_f32[1]; z = _v.m128_f32[2]; return *this; }
 #endif
 	};
@@ -325,26 +388,52 @@ namespace VECTOR
 	/************************
 	--- Matrix Operations ---
 	*************************/
-
 	/* Build translation matrix */
 	template<typename T>
-	inline MATRIX4X4<T> TranslateMatrix(const VEC4<T>& _vec)
+	inline MATRIX4X4<T> TTranslateMatrix(const VEC4<T>& _vec)
 	{
 		MATRIX4X4<T> r = TMatrixIdentity<T>();
+
 		r.m[0][3] = _vec.x;
 		r.m[1][3] = _vec.y;
 		r.m[2][3] = _vec.z;
+
+		//r.m[3][0] = _vec.x;
+		//r.m[3][1] = _vec.y;
+		//r.m[3][2] = _vec.z;
+
+		return r;
+	}
+
+	template<typename T>
+	inline MATRIX4X4<T> TTranslateMatrix(const VEC3<T>& _vec)
+	{
+		MATRIX4X4<T> r = TMatrixIdentity<T>();
+
+		r.m[0][3] = _vec.x;
+		r.m[1][3] = _vec.y;
+		r.m[2][3] = _vec.z;
+
+		//r.m[3][0] = _vec.x;
+		//r.m[3][1] = _vec.y;
+		//r.m[3][2] = _vec.z;
+
 		return r;
 	}
 
 	/* Build scale matrix */
 	template<typename T>
-	inline MATRIX4X4<T> ScaleMatrix(const VEC4<T>& _vec)
+	inline MATRIX4X4<T> TScaleMatrix(const VEC4<T>& _vec)
 	{
 		MATRIX4X4<T> r = TMatrixIdentity<T>();
 		r.m[0][0] = _vec.x;
 		r.m[1][1] = _vec.y;
 		r.m[2][2] = _vec.z;
+
+		//r.m[0][3] = _vec.x;
+		//r.m[1][3] = _vec.y;
+		//r.m[2][3] = _vec.z;
+
 		return r;
 	}
 
@@ -426,24 +515,33 @@ namespace VECTOR
 	}
 
 	/* Inverse Matrix */
+	//template<typename T>
+	//inline MATRIX4X4<T> TMatrixInverse(const MATRIX4X4<T>& _mat)
+	//{
+	//	MATRIX4X4<T> inv, cofactor;
+	//	T det = (T)(1) / TDeterminant(_mat);
+
+	//	for (uint32_t j = 0; j < 4; ++j)
+	//	{
+	//		for (uint32_t i = 0; i < 4; ++i)
+	//		{
+	//			SetMinorElements(_mat, cofactor, j, i);
+	//			inv.m[i][j] = det * TDeterminant(cofactor);
+	//			if ((i + j) % 2 == 1)
+	//				inv.m[i][j] = -inv.m[i][j];
+	//		}
+	//	}
+	//	return inv;
+	//}
+
+#ifdef DXVECTOR
 	template<typename T>
 	inline MATRIX4X4<T> TMatrixInverse(const MATRIX4X4<T>& _mat)
 	{
-		MATRIX4X4<T> inv, cofactor;
-		T det = (T)(1) / TDeterminant(_mat);
-
-		for (uint32_t j = 0; j < 4; ++j)
-		{
-			for (uint32_t i = 0; i < 4; ++i)
-			{
-				SetMinorElements(_mat, cofactor, j, i);
-				inv.m[i][j] = det * TDeterminant(cofactor);
-				if ((i + j) % 2 == 1)
-					inv.m[i][j] = -inv.m[i][j];
-			}
-		}
-		return inv;
+		XMMATRIX mat = XMMATRIX((float*)_mat.m);
+		return XMMatrixInverse(&XMMatrixDeterminant(mat), mat);
 	}
+#endif
 
 	/************************
 	--- Vector Operations ---

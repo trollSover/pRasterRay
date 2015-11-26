@@ -19,6 +19,8 @@
 
 #include "../include/FW1FontWrapper.h"
 
+#include "PerfTracker.h"
+
 //static const int RENDERTARGET_COUNT = 3;
 
 enum RENDER_TYPE
@@ -33,6 +35,9 @@ class VoxelApp
 	: public IApplication
 {
 private:
+	std::vector<uint32_t>	rasterIndices;
+	AmdPerf::PerfContext	m_renderloopPerfContext;
+
 	RENDER_TYPE	m_eRenderType;
 
 	SimpleInput*	m_pInput;

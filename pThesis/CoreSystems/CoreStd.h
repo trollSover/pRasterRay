@@ -9,6 +9,7 @@
 #endif
 
 #define FDEBUG
+//#define _PERFTRACK
 
 /* External */
 
@@ -298,6 +299,8 @@ static void PrintError(const char* _location, const HRESULT _hr)
 
 /* User Input Defines */
 // Camera Input
+#define CAMERA_UP				VK_CONTROL
+#define CAMERA_DOWN				VK_SPACE
 #define CAMERA_FORWARD			'W'
 #define CAMERA_BACK				'S'
 #define CAMERA_LEFT				'A'
@@ -309,6 +312,8 @@ static void PrintError(const char* _location, const HRESULT _hr)
 #define CAMERA_SPEED_INCREMENT	VK_ADD
 #define CAMERA_SPEED_DECREMENT	VK_SUBTRACT
 #define CAMERA_SPEED_RESET		VK_MULTIPLY
+#define CAMERA_RESET_ALL		VK_HOME
+
 // General UI Input
 #define UI_HELP					'H'
 

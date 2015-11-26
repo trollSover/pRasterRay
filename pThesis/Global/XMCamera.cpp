@@ -4,19 +4,20 @@
 #define DEG_TO_RAD	0.01745329251994329576923690768489
 
 
-XMCamera::XMCamera() : m_lookAt(0, 0, 0),
-m_position(0, 0, -1),
-m_up(0, 1, 0),
-m_roll(0),
-m_pitch(0),
-m_yaw(0),
-m_forward(0, 0, 1),
-m_right(1, 0, 0),
-movementSpeed(1)
+XMCamera::XMCamera() :	m_lookAt(0, 0, 0),
+						m_position(0, 0, -1),
+						m_up(0, 1, 0),
+						m_roll(0),
+						m_pitch(0),
+						m_yaw(0),
+						m_forward(0, 0, 1),
+						m_right(1, 0, 0),
+						movementSpeed(1)
 {
 	TMatrixIdentity(m_viewMatrix);
 	TMatrixIdentity(m_projectionMatrix);
 	TMatrixIdentity(m_rotationMatrix);
+	TMatrixIdentity(worldToCamera);
 
 	movementToggles[0] = 0;
 	movementToggles[1] = 0;
@@ -55,8 +56,8 @@ void XMCamera::SetPerspectiveProjectionLH(float fov, float width, float height, 
 
 	m_viewMatrix = XMMatrixLookAtLH(XMLoadFloat4(&p), XMLoadFloat4(&l), XMLoadFloat4(&u));
 
-	m_projectionMatrix = TMatrixTranspose(m_projectionMatrix);
-	m_viewMatrix = TMatrixTranspose(m_viewMatrix);
+	//m_projectionMatrix	= TMatrixTranspose(m_projectionMatrix);
+	//m_viewMatrix		= TMatrixTranspose(m_viewMatrix);
 
 	AdjustHeadingPitch(0, 0);
 }
@@ -74,9 +75,9 @@ void XMCamera::UpdateView()
 	m_up = TVectorTransform(du, m_rotationMatrix);
 
 	// forward & right
-	m_forward = Normalize(m_lookAt);
-	m_right = Cross(m_up, m_forward);
-	m_right = Normalize(m_right);
+	m_forward	= Normalize(m_lookAt);
+	m_right		= Cross(m_up, m_forward);
+	m_right		= Normalize(m_right);
 
 
 	// update lookAt
@@ -88,15 +89,17 @@ void XMCamera::UpdateView()
 	XMFLOAT3 u(m_up.x, m_up.y, m_up.z);
 
 	m_viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&p), XMLoadFloat3(&l), XMLoadFloat3(&u));
-	m_viewMatrix = TMatrixTranspose(m_viewMatrix);
+	//m_viewMatrix = TMatrixTranspose(m_viewMatrix);
 
 	// update inverse matrix
 	m_inverseViewMatrix = XMMatrixInverse(&XMMatrixDeterminant(m_viewMatrix), m_viewMatrix);
 	m_inverseProjectionMatrix = XMMatrixInverse(&XMMatrixDeterminant(m_projectionMatrix), m_projectionMatrix);
 	/* (world) view projection */
 	//m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
-	m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
-	m_inverseWVP = XMMatrixInverse(&XMMatrixDeterminant(m_viewProjectionMatrix), m_viewProjectionMatrix);
+	m_viewProjectionMatrix	= m_projectionMatrix * m_viewMatrix;
+	m_inverseWVP			= XMMatrixInverse(&XMMatrixDeterminant(m_viewProjectionMatrix), m_viewProjectionMatrix);
+
+	
 }
 
 void XMCamera::Update(const Time& time)

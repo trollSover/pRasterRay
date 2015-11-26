@@ -90,7 +90,9 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>aticalrt.lib;aticalcl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>
+      </AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)*.dll" "$(OutDir)" /Y</Command>
@@ -143,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application\DebugRenderer.cpp" />
+    <ClCompile Include="Application\PerfTracker.cpp" />
     <ClCompile Include="Application\SVO_Loader.cpp" />
     <ClCompile Include="Application\VoxelApp.cpp" />
     <ClCompile Include="CoreSystems\Core.cpp" />
@@ -167,6 +170,7 @@
     <ClInclude Include="Application\MarchingCubes.h" />
     <ClInclude Include="Application\ModelLoader.h" />
     <ClInclude Include="Application\Node.h" />
+    <ClInclude Include="Application\PerfTracker.h" />
     <ClInclude Include="Application\SVO.h" />
     <ClInclude Include="Application\SVO_IO.h" />
     <ClInclude Include="Application\SVO_Loader.h" />

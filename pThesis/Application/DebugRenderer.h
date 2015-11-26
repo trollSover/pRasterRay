@@ -2,6 +2,12 @@
 
 #include "../Render/Renderer.h"
 
+#include "../CoreSystems/CoreStd.h"
+#include "../CoreSystems/DXDriver.h"
+
+#include "../Render/Shader.h"
+#include "../Render/Render_Create.h"
+
 class DebugRenderer
 	: public IRenderer
 {

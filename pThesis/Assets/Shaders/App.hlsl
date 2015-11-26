@@ -77,13 +77,14 @@ cbuffer Constrictions : register(b4)
 
 
 
-struct Volume_Color
+struct TVoxel
 {
-	uint	morton;	// 4
 	float4	color;	// 16
-};					// = 20 bytes
+	float3  normal;	// 12
+	
+};					// = 28 bytes
 
-typedef Volume_Color TVoxel;
+//typedef Volume_Color TVoxel;
 
 //struct TVoxel
 //{

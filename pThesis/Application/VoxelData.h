@@ -86,4 +86,17 @@ namespace VOXEL
 			data		= _voxel.m_data;
 		}
 	};
+
+	struct Voxel
+	{
+		FVEC4 color;
+		FVEC3 normal;
+
+		Voxel(void)
+		{	}
+
+		Voxel(const GPU_Voxel<NC>& _voxel)
+			: color(_voxel.data.c), normal(_voxel.data.n)
+		{	}
+	};
 };

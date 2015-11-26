@@ -108,6 +108,9 @@
     <ClCompile Include="Render\BackBufferRender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Application\PerfTracker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreSystems\Core.h">
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="include\FW1FontWrapper.h">
       <Filter>Header Files\3rd Party</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\PerfTracker.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

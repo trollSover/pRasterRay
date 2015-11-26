@@ -1,33 +1,36 @@
 #include "Shaders/App.hlsl"
 
-// output buffer - in this case the backbuffer
+// output buffer - in this case the deferred color buffer 
 RWTexture2D<float>  readBuffer  : register(u4);
 RWTexture2D<float4> writeBuffer : register(u5);
 
+#define BLACK		float4(0,0,0,1);
+#define WHITE		float4(1,1,1,1);
+#define RED			float4(1,0,0,1);
+#define GREEN		float4(0,1,0,1);
+#define BLUE		float4(0,0,1,1);
+#define PURPLE		float4(1,0,1,1);
+#define YELLOW		float4(1,1,0,1);
+#define GREENBLUE	float4(0,1,1,1);
+#define GREY		float4(0.5,0.5,0.5,1);
 
 static const float4 colors[] = {
-	float4(1, 0, 0, 1),
-	float4(0, 1, 0, 1),
-	float4(0, 0, 1, 1),
-	float4(1, 1, 0, 1),
-	float4(1, 0, 1, 1),
-	float4(0, 1, 1, 1),
-	float4(0, 0, 0, 1),
-	float4(1, 1, 1, 1)
+	float4(1, 0, 0, 1),			// 0	: RED
+	float4(0, 1, 0, 1),			// 1	: GREEN
+	float4(0, 0, 1, 1),			// 2	: BLUE
+	float4(1, 1, 0, 1),			// 3	: YELLOW
+	float4(1, 0, 1, 1),			// 4	: PURPLE
+	float4(0, 1, 1, 1),			// 5	: BABY BLUE
+	float4(0.5, 0.5, 0.5, 1),	// 6	: GREY
+	float4(1, 1, 1, 1)			// 7	: WHITE
 };
+
+
 
 struct AABB {
 	float3 Min;
 	float3 Max;
 };
-
-AABB getBox(float3 _min, float3 _max)
-{
-	AABB aabb;
-	aabb.Min = _min;
-	aabb.Max = _max;
-	return aabb;
-}
 
 bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 {
@@ -43,54 +46,21 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 	return t0 <= t1;
 }
 
-bool hitbox(Ray r, float3 m1, float3 m2, out float tmin, out float tmax)
+bool Intersect(Ray r, in float3 _min, in float3 _max, out float t0, out float t1)
 {
-	float tymin, tymax, tzmin, tzmax;
-	float flag = 1.0;
-
-	if (r.direction.x >= 0)
-	{
-		tmin = (m1.x - r.origin.x) / r.direction.x;
-		tmax = (m2.x - r.origin.x) / r.direction.x;
-	}
-	else
-	{
-		tmin = (m2.x - r.origin.x) / r.direction.x;
-		tmax = (m1.x - r.origin.x) / r.direction.x;
-	}
-	if (r.direction.y >= 0)
-	{
-		tymin = (m1.y - r.origin.y) / r.direction.y;
-		tymax = (m2.y - r.origin.y) / r.direction.y;
-	}
-	else
-	{
-		tymin = (m2.y - r.origin.y) / r.direction.y;
-		tymax = (m1.y - r.origin.y) / r.direction.y;
-	}
-
-	if ((tmin > tymax) || (tymin > tmax)) flag = -1.0;
-	if (tymin > tmin) tmin = tymin;
-	if (tymax < tmax) tmax = tymax;
-
-	if (r.direction.z >= 0)
-	{
-		tzmin = (m1.z - r.origin.z) / r.direction.z;
-		tzmax = (m2.z - r.origin.z) / r.direction.z;
-	}
-	else
-	{
-		tzmin = (m2.z - r.origin.z) / r.direction.z;
-		tzmax = (m1.z - r.origin.z) / r.direction.z;
-	}
-	if ((tmin > tzmax) || (tzmin > tmax)) flag = -1.0;
-	if (tzmin > tmin) tmin = tzmin;
-	if (tzmax < tmax) tmax = tzmax;
-
-	return (flag > 0);
+	float3 invR = 1.0 / r.direction;
+	float3 tbot = invR * (_min - r.origin);
+	float3 ttop = invR * (_max - r.origin);
+	float3 tmin = min(ttop, tbot);
+	float3 tmax = max(ttop, tbot);
+	float2 t = max(tmin.xx, tmin.yz);
+	t0 = max(t.x, t.y);
+	t = min(tmax.xx, tmax.yz);
+	t1 = min(t.x, t.y);
+	return t0 <= t1;
 }
 
-/* Check if node has child at specified index
+/* --- Check if node has child at specified index ---
 #param:
 *_nodePtr: node index address
 *_index: node child index (by morton order)
@@ -102,7 +72,7 @@ bool HasChildAtIndex(const in uint _nodePtr, const in uint _index)
 	return 1 == ((Nodes[_nodePtr].children >> _index) & ((1 << 1) - 1));
 }
 
-/* Check the amount of children of a node
+/* --- Check the amount of children of a node ---
 #param:
 *_nodePtr: node index address
 #return:
@@ -113,7 +83,7 @@ uint CountChildren(const in uint _nodePtr)
 	return countbits(Nodes[_nodePtr].children & ((1 << 8) - 1));
 }
 
-/* Get child pointer address
+/* --- Get child pointer address ---
 #param:
 *_nodePtr: node index address
 *_index: node child index (by morton order)
@@ -125,7 +95,7 @@ uint GetChildAddress(const in uint _nodePtr, const in uint _index)
 	return Nodes[_nodePtr].basePtr + (Nodes[_nodePtr].children >> (8 + 3 * _index) & ((1 << 3) - 1));
 }
 
-/* Check if node is leaf
+/* --- Check if node is leaf ---
 #param:
 *_nodePtr: node index address
 #return:
@@ -163,8 +133,14 @@ bool Intersect(Ray _ray, AABB _box, out float3 _intersectionPoint)
 #pragma warning( disable : 4714 )	// due to CAST_STACK_DEPTH we reach the limit of temp registers, will negatively affect performance - disable warning for now
 
 #define CAST_STACK_DEPTH 23
-#define MAX_ITERATIONS  10000
+#define MAX_ITERATIONS  100
+static const float ITR_DEPTH = 1.f / (float)MAX_ITERATIONS;
 
+// copysign intrinsic is not present in hlsl
+float copysign(float _magnitude, float _sign)
+{
+	return _magnitude * sign(_sign);
+}
 
 void Traverse(inout Ray _ray, uint3 threadId)
 {
@@ -235,17 +211,13 @@ void Traverse(inout Ray _ray, uint3 threadId)
 	int		nodeStack[CAST_STACK_DEPTH + 1];
 	float	tmaxStack[CAST_STACK_DEPTH + 1]; 
 
-	//nodeStack[CAST_STACK_DEPTH] = rootIndex;
-	
-	const float epsilon = exp2(-CAST_STACK_DEPTH);
+	const float epsilon						= exp2(-CAST_STACK_DEPTH);
+	const int	INVALID_CHILD_DESCRIPTOR	= 0;	// no bits set
 
 	// avoid division by zero on small ray direction
-	// note: copysign is not present in hlsl
-	if (abs(_ray.direction.x) < epsilon) _ray.direction.x = (epsilon * sign(_ray.direction.x));
-	if (abs(_ray.direction.y) < epsilon) _ray.direction.y = (epsilon * sign(_ray.direction.y));
-	if (abs(_ray.direction.z) < epsilon) _ray.direction.z = (epsilon * sign(_ray.direction.z));
-
-	const int INVALID_CHILD_DESCRIPTOR = 0;	// no bits set
+	if (abs(_ray.direction.x) < epsilon) _ray.direction.x = copysign(epsilon, _ray.direction.x); //(epsilon * sign(_ray.direction.x));
+	if (abs(_ray.direction.y) < epsilon) _ray.direction.y = copysign(epsilon, _ray.direction.y); //(epsilon * sign(_ray.direction.y));
+	if (abs(_ray.direction.z) < epsilon) _ray.direction.z = copysign(epsilon, _ray.direction.z); //(epsilon * sign(_ray.direction.z));
 
 	// precompute coefficients of t
 	float tx_cf = 1.f / -abs(_ray.direction.x);
@@ -263,41 +235,34 @@ void Traverse(inout Ray _ray, uint3 threadId)
 	if (_ray.direction.z > 0.f) octant_mask ^= 4, tz_bs = 3.f * tz_cf - tz_bs;
 
 	// init span of t-values
-	float t_min = max(max(2.f * tx_cf - tx_bs, 2.f * ty_cf - ty_bs), 2.f * tz_cf - tz_bs);
-	float t_max = min(min(tx_cf - tx_bs, ty_cf - ty_bs), tz_cf - tz_bs);
+	float t_max = max(max(2.f * tx_cf - tx_bs, 2.f * ty_cf - ty_bs), 2.f * tz_cf - tz_bs);
+	float t_min = min(min(tx_cf - tx_bs, ty_cf - ty_bs), tz_cf - tz_bs);
 	float h		= t_max;
 	t_min		= max(t_min, 0.f);
 	t_max		= min(t_max, 1.f);
 
 	// init current node
-	int parent			= rootIndex;
-	int descriptor		= INVALID_CHILD_DESCRIPTOR;
-	int idx				= 0;
-	float3 pos			= float3(1.f, 1.f, 1.f);
-	int scale			= CAST_STACK_DEPTH - 1;
-	float scale_exp2	= 0.5f;
+	int		parent		= rootIndex;					// current root ptr
+	int		descriptor	= INVALID_CHILD_DESCRIPTOR;
+	int		idx			= 0;							// child slot
+	float3	pos			= float3(1.f, 1.f, 1.f);
+	int		scale		= CAST_STACK_DEPTH - 1;
+	float	scale_exp2	= 0.5f;							// volume divider
 
 	if (1.5f * tx_cf - tx_bs > t_min) idx ^= 1, pos.x = 1.5f;
 	if (1.5f * ty_cf - ty_bs > t_min) idx ^= 2, pos.y = 1.5f;
 	if (1.5f * tz_cf - tz_bs > t_min) idx ^= 4, pos.z = 1.5f;
 	
 	int itr = 0;
-	
 
 	float ray_dir_sz =_ray.direction_sz;
 	float ray_pos_sz =_ray.origin_sz;
 
-	//if (t_min <= t_max)
-	//{
-	//	writeBuffer[threadId.xy] = float4(1.f, 0.f, 0.f, 1.f);
-	//}
-	//else
-	//{
-	//	writeBuffer[threadId.xy] = float4(0.f, 1.f, 0.f, 1.f);
-	//}
+	float cx = (float)(threadId.x) / (float)resWidth;
+	float cy = (float)(threadId.y) / (float)resHeight;
 
-	//writeBuffer[threadId.xy] = float4(0.75f, 0.5f, 0.25f, 1.f);
-	
+	float4 color = BLACK;// Voxels[parent].color;
+
 	// traverse nodes along ray within the octree
 	while (scale < CAST_STACK_DEPTH)
 	{
@@ -307,7 +272,7 @@ void Traverse(inout Ray _ray, uint3 threadId)
 
 		if (idx < 0 || idx > 7 || parent < 0 || parent > (int)rootIndex)	// debug sanity check
 		{
-			writeBuffer[threadId.xy] = float4(0.75, 0.5, 0.25, 1);
+			writeBuffer[threadId.xy] = YELLOW;
 			return;
 		}
 
@@ -321,7 +286,7 @@ void Traverse(inout Ray _ray, uint3 threadId)
 		float tx_corner = pos.x * tx_cf - tx_bs;
 		float ty_corner = pos.y * ty_cf - ty_bs;
 		float tz_corner = pos.z * tz_cf - tz_bs;
-		float tc_max = min(min(tx_corner, ty_corner), tz_corner);
+		float tc_max	= min(min(tx_corner, ty_corner), tz_corner);
 
 		int child_shift = idx ^ octant_mask;
 		int child_masks = descriptor << child_shift;
@@ -330,18 +295,20 @@ void Traverse(inout Ray _ray, uint3 threadId)
 		//if ((child_masks & 0x8000) != 0 && t_min <= t_max)
 		if (t_min <= t_max)
 		{
-			//float c = color_shade_step * itr;
-			writeBuffer[threadId.xy] = float4(0, 1, 0, 1);
+			//color = RED;
+			//color = colors[4];	// PURPLE
+			//break;
 
-			//if (tc_max * ray.dir_sz + ray_orig_sz >= scale_exp2)
-			//	break; // at t_min
-
-			if (tc_max * ray_dir_sz + ray_pos_sz >= scale_exp2)
+			if ((tc_max * ray_dir_sz + ray_pos_sz) >= scale_exp2)
 			{
-				writeBuffer[threadId.xy] = float4(0, 1, 1, 1);
+				int node		= GetChildAddress(parent, idx);
+				int voxelptr	= Nodes[node].dataPtr;
+				color = Voxels[voxelptr].color;
+				writeBuffer[threadId.xy] = color;
+				//writeBuffer[threadId.xy] = WHITE;
 				return;
+				break;
 			}
-
 			// INTERSECT
 			float tv_max	= min(t_max, tc_max);
 			float fhalf		= scale_exp2 * 0.5f;
@@ -352,32 +319,54 @@ void Traverse(inout Ray _ray, uint3 threadId)
 			// Descend to the first child if the resulting t-span is non-empty.
 			if (t_min <= tv_max)
 			{
+				color = GREEN;
 				if ((child_masks & 0x0080) == 0)
 				{
-					writeBuffer[threadId.xy] = float4(1, 1, 1, 1);	// red
-					return; // at t_min (overridden with tv_min).
+					int node		= GetChildAddress(parent, idx);
+					int voxelptr	= Nodes[node].dataPtr;
+					color = Voxels[voxelptr].color;
+					writeBuffer[threadId.xy] = color;
+					//writeBuffer[threadId.xy] = WHITE;
+					return;
+					break; // at t_min (overridden with tv_min).
 				}
-
-				
 
 				// PUSH
 				if (tc_max < h)
 				{
 					// stack write
 					nodeStack[scale] = parent;
-					tmaxStack[scale] = t_max;
-					
+					tmaxStack[scale] = t_max;	
 				}
 				
 				h = tc_max;
 				// Find child descriptor corresponding to the current voxel.
 				//int offset = (unsigned int)descriptor >> 17;	// child pointer
-				int offset = (unsigned int)descriptor;
+				int offset = (unsigned int)descriptor >> 24;
 				//if ((descriptor & 0x10000) != 0)	// far - not our concern
 				//	break;
 
 				offset += popc8(child_masks & 0x7F);
 
+				const int val = offset * 2;
+				if (val < 0 || val > 7)
+				{
+					writeBuffer[threadId.xy] = PURPLE;
+					//return;
+				}
+
+				if (HasChildAtIndex(parent, val))
+				{
+					parent = GetChildAddress(parent, val);
+				}
+				else
+				{
+					parent -= val;
+					writeBuffer[threadId.xy] = RED;
+					//return;
+				}
+				parent = rootIndex;
+				//parent += offset * 2;
 				// Select child voxel that the ray enters first.
 				idx = 0;
 				scale--;
@@ -394,7 +383,6 @@ void Traverse(inout Ray _ray, uint3 threadId)
 			}
 		}
 
-		
 		// ADVANCE
 		// Step along the ray
 
@@ -411,9 +399,8 @@ void Traverse(inout Ray _ray, uint3 threadId)
 		// Proceed with pop if the bit flips disagree with the ray direction.
 		if ((idx & step_mask) != 0)
 		{
-			//writeBuffer[threadId.xy] = float4(0, 1, 0, 1);	// green
+			//color = YELLOW;
 			// POP
-
 			unsigned int differing_bits = 0;
 			if ((step_mask & 1) != 0) differing_bits |= asint(pos.x) ^ asint(pos.x + scale_exp2);
 			if ((step_mask & 2) != 0) differing_bits |= asint(pos.y) ^ asint(pos.y + scale_exp2);
@@ -442,9 +429,169 @@ void Traverse(inout Ray _ray, uint3 threadId)
 		}	
 	}
 
-	// MISS
-	writeBuffer[threadId.xy] = float4(0.25f, 0.5f, 0.75f, 1.f);	// baby blue
+	//float3 normal = cross(pos - _ray.direction, pos - _ray.origin);
+	//	normal = normalize(normal);
+	//writeBuffer[threadId.xy] = float4(normal, 1);
+
+	//if (IsLeaf(parent))
+	//	writeBuffer[threadId.xy] = color;
+	//else
+	//{
+	//	float c  = itr * ITR_DEPTH;
+	//	float4 col = float4(c, c, c, 1);
+	//	writeBuffer[threadId.xy] = col;
+	//}
 }
+
+void ATraverse(inout Ray _ray, uint3 threadId)
+{
+	static const float3 pos[] =
+	{
+		float3(0,0,0),
+		float3(1,0,0),
+		float3(0,1,0),
+		float3(1,1,0),
+		float3(0,0,1),
+		float3(1,0,1),
+		float3(0,1,1),
+		float3(1,1,1),
+	};
+
+	/* iteration variables */
+	int node  = rootIndex;
+	int depth = 0;
+	float scale = 1;
+	const float dim = pow(2, rootDepth - 1);// / (float)resWidth;
+	float tmin, tmax;
+
+
+	float3 dmin = float3(0, 0, 0);
+	float3 dmax = float3(dim, dim, dim);
+
+	struct Stack
+	{
+		int		nodeptr;
+		float	scale;
+		float   smin, smax;
+		float3  svmin, svmax;
+	};
+
+	Intersect(_ray, dmin, dmax, tmin, tmax);
+
+	Stack stack[125];
+	stack[0].nodeptr = rootIndex;
+	stack[0].scale = 1.f;
+	stack[0].smin = tmin;
+	stack[0].smax = tmax;
+	stack[0].svmin = dmin;
+	stack[0].svmax = dmax;
+
+	int itr = 0;
+	const int ITR_MAX = 10000;
+
+	while (depth < (int)rootDepth)
+	{
+		if (itr > ITR_MAX)
+			break;
+
+		itr++;
+
+		if (depth < 0)
+			break;
+
+		if (IsLeaf(stack[depth].nodeptr))
+		{
+			//writeBuffer[threadId.xy] = RED;
+			break;
+		}
+
+		scale = stack[depth].scale;
+		tmin  = stack[depth].smin;
+		tmax  = stack[depth].smax;
+		dmin  = stack[depth].svmin;
+		dmax  = stack[depth].svmax;
+
+		// find the closest child
+		if (Intersect(_ray, dmin, dmax, tmin, tmax))
+		{
+			for (int i = 0; i < 8; ++i)
+			{
+				if (HasChildAtIndex(stack[depth].nodeptr, i))
+				{
+					float3 dvmin = dmin + pos[i] * (dim * scale * 0.5);		// parent min + child offset
+					float3 dvmax = dvmin + pos[7] * (dim * scale * 0.5);	// child min + child dim
+
+					float tvmin, tvmax;
+
+					if (Intersect(_ray, dvmin, dvmax, tvmin, tvmax))
+					{
+						
+						if (tvmin < tmax)
+						{
+							//tmax = tvmin;
+							int child = GetChildAddress(stack[depth].nodeptr, i);
+
+							//int 
+							stack[depth + 1].nodeptr = child;
+							stack[depth + 1].scale = scale * 0.5f;
+							stack[depth + 1].smin = tvmin;
+							stack[depth + 1].smax = tvmax;
+							stack[depth + 1].svmin = dvmin;
+							stack[depth + 1].svmax = dvmax;
+
+							if (IsLeaf(child))
+							{
+								int voxelptr = Nodes[child].dataPtr;
+								float3 nor = Voxels[voxelptr].normal;
+								float4 col = Voxels[voxelptr].color / 256.f;
+								col.w = 1;
+
+								static const float4 ambientcolor = float4(0.5f, 0.5f, 0.5f, 1.0f);
+								static const float4 diffuseColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+								static const float3 lightDirection = float3(0.0f, -1.0f, 0.5f);
+
+								float4 color = col * ambientcolor;
+								float	lightIntensity = saturate(dot(nor, -lightDirection));
+								if (lightIntensity > 0.f)
+								color += (diffuseColor * lightIntensity);
+
+
+								writeBuffer[threadId.xy] = color;
+
+								//	float c = (float)depth / (float)rootDepth;
+								//float4 color = colors[i];
+								//	color.w = 1;
+								//writeBuffer[threadId.xy] = float4(c,c,c,1);
+								//writeBuffer[threadId.xy] = colors[i];
+								//break;
+							}
+							//else
+							{
+								float c = (float)depth / (float)rootDepth;
+								//continue;
+							}
+						}
+
+					}
+				}
+			}
+
+			depth++;
+			continue;
+		}
+		//else
+		{
+			stack[depth - 1] = stack[depth];
+			node = stack[depth].nodeptr;
+			depth--;
+		}
+	}
+
+
+
+	return;
+}
+
 #pragma warning( disable : 3556 )	// complain about using int div instead of uint div
 // {32 * 40, 45 * 16} 
 [numthreads(32, 16, 1)]
@@ -457,37 +604,65 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 	default	prioritized.*/
 	if (readBuffer[threadId.xy].r > 0)
 	{
-		return;
+		//return;
 	}
-
-	float y = float(2.f * threadId.y + 1.f - resWidth) * (1.f / (float)resWidth)  + 1;
+	//writeBuffer[threadId.xy] = float4(0.75, 0.5, 0.25, 1);
+	//writeBuffer[threadId.xy] = GREENBLUE;
+	float y = float(2.f * threadId.y + 1.f - resHeight) * (1.f / (float)resHeight) + 1;
 	float x = float(2.f * threadId.x + 1.f - resWidth)  * (1.f / (float)resWidth) + 1;
-	float z = 0.0f;
+	//float y = (float)threadId.y * (1.f / (resHeight * 0.5f)) + 1.f;
+	//float x = (float)threadId.x * (1.f / (resWidth  * 0.5f)) - 1.f;
+	float z = 1.0f;
+
+	//float3 p = mul(float4(x, y, z, 1), g_WVP).xyz;
+	//x = p.x;
+	//y = p.y;
+	//z = p.z;
+
 
 	// Create new ray from the camera position to the pixel position
 	Ray ray;
 	float4 aux = (mul(float4(0, 0, 0, 1.f), g_ViewInverse));
+	//float4 aux = (mul(float4(0, 0, 0, 1.f), g_WVPInverse));
 	ray.origin = aux.xyz / aux.w;
+	ray.origin_sz = 0;
+	ray.direction_sz = 0;
+
+	ray.origin = g_cameraPos;
 
 	float tnear, tfar;
 
 	// create ray direction from pixelposition in world space
 	float3 pixelPosition = mul(float4(x, y, z, 1.f), g_ViewInverse).xyz;
+	//float3 pixelPosition = mul(float4(x, y, z, 1.f), g_WVPInverse).xyz;
 	ray.direction = normalize(pixelPosition - ray.origin);
-	ray.origin_sz = 1;
-	ray.direction_sz = 1;
-	//Traverse(ray, threadId);
+	ray.origin_sz = 0;
+	ray.direction_sz = 0;
+
+	ATraverse(ray, threadId);
+	return;
+
+	AABB box;
+	float dim = gridLength;
+	float hdim = dim / 2.f;
+	box.Min = float3(-hdim, -hdim, -hdim);
+	box.Max = float3(hdim, hdim, hdim);
+
+	//if (IntersectBox(ray, box, tnear, tfar))
+	//{
+	//	if (tnear < tfar)
+	//		writeBuffer[threadId.xy] = RED;
+	//}
 	//return;
+	
+	int		xsize	= resWidth;
+	float	vsize	= 1.0f; // maxVoxelSize
+	float	tmin	= 0.0f;
 
-	float vsize = 1.0f; // maxVoxelSize
-	float tmin = 0.0f;
 
-	int ppos = pixelPosition.x;// *pixelPosition.y;
-	int xsize = resWidth;
-	int pixely = ppos / xsize;
-	int pixelx = ppos - (pixely * xsize);
-	float fx = (float)pixelx;
-	float fy = (float)pixely;
+	// 1:1 mapping thread:pixel 
+	float fx = threadId.x;
+	float fy = threadId.y;
 
 	const float4x4 vtc = viewportToCamera;
 	const float4x4 cto = cameraToOctree;
@@ -501,6 +676,7 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 						vtc._m20 + fx * vtc._m21 * fy + vtc._m23,
 						vtc._m30 + fx * vtc._m31 * fy + vtc._m33);
 
+	//float4 pos = mul(float4(fx, fy, 1, 1), vtc);
 
 	float3 near = float3(pos.x - vtc._m02,
 						 pos.y - vtc._m12,
@@ -523,13 +699,17 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 	ray.origin_sz = near_sz * a - diff_sz * c;
 	ray.direction_sz = diff_sz * (c - b);
 
-	ray.origin = mul(cto, float4(ray.origin,1)).xyz;
+	//ray.origin = mul(cto, float4(ray.origin,1)).xyz;
 	ray.direction = float3( cto._m00 * ray.direction.x + cto._m01 * ray.direction.y + cto._m02 * ray.direction.z,
 							cto._m10 * ray.direction.x + cto._m11 * ray.direction.y + cto._m12 * ray.direction.z,
 							cto._m20 * ray.direction.x + cto._m21 * ray.direction.y + cto._m22 * ray.direction.z);
 
-	ray.direction = normalize(ray.direction);
-	Traverse(ray, threadId);
+	//ray.direction = normalize(ray.direction);
 
+	//ray.direction = mul(float4(ray.direction,1), cto).xyz;
+	//ray.direction = normalize(ray.direction);
+
+	ATraverse(ray, threadId);
+	
 	return;
 }

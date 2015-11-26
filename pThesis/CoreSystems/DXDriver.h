@@ -4,6 +4,7 @@
 
 #include "CoreStd.h"
 #include "../Render/RenderTarget.h"
+#include "../Application/PerfTracker.h"
 
 class Shader;
 
@@ -32,6 +33,8 @@ enum RENDERTARGETS
 class DXDriver
 {
 private:
+	AmdPerf::PerfLibrary	m_perfLib;
+
 	bool	m_vsync_enabled;
 	int		m_videoCardMemory;
 	char*	m_videoCardDescription;
@@ -60,6 +63,8 @@ public:
 private:
 protected:
 public:
+	AmdPerf::PerfLibrary* GetPerfLibrary(void) { return &m_perfLib; }
+
 	DXDriver();
 	~DXDriver();
 
@@ -84,7 +89,7 @@ public:
 	void SetZBufferOff() { m_context->OMSetDepthStencilState(m_pDepthStateDisabled, 1); }
 
 	template<typename T>
-	HRESULT MapSubResource(ID3D11Resource* _resource, T _data, D3D11_MAP _mapType = D3D11_MAP_WRITE_DISCARD)
+	HRESULT MapSubResource(ID3D11Resource* _resource, T& _data, D3D11_MAP _mapType = D3D11_MAP_WRITE_DISCARD)
 	{
 		HRESULT hr = S_OK;
 		D3D11_MAPPED_SUBRESOURCE msr;

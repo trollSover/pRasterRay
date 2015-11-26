@@ -102,12 +102,7 @@ public:
 
 	TNode& GetRoot() 
 	{ 
-		//return m_svoLoader.m_nodes[0];
-//		m_svoLoader.m_nodes[m_svoLoader.m_nodes.size() - 1].parentPtr = -1;	// note: unsigned int
-
 		return m_svoLoader.m_nodes[m_svoLoader.m_nodes.size()-1]; 
-
-
 	}
 
 	void GetSVO(TNode& _parent, std::vector<GPU_Voxel<T>>& _voxels, int _level = 0)

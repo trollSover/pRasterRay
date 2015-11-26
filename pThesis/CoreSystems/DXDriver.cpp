@@ -46,6 +46,10 @@ bool DXDriver::Init(Resolution _res)
 	HRESULT result;
 	RenderTargetInit rti;
 
+#ifdef _PERFTRACK
+	m_perfLib.Init();	// performance counter lib
+#endif
+
 	D3D11_VIEWPORT viewport;
 
 	// Query DXGI about system
@@ -281,6 +285,7 @@ void DXDriver::SetRenderTargets(ID3D11RenderTargetView** _renderTargets, const u
 void DXDriver::ClearRenderTargets(ID3D11RenderTargetView** _renderTargets, const unsigned int _count)
 {
 	static const float color[4] = { 0.f, 0.f, 0.f, 0.f };
+
 	for (unsigned int i = 0; i < _count; ++i)
 	{
 		m_context->ClearRenderTargetView(_renderTargets[i], color);

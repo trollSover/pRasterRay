@@ -1,10 +1,12 @@
 #pragma once
 
-#include "../CoreSystems/CoreStd.h"
-#include "../CoreSystems/DXDriver.h"
-
-#include "Shader.h"
-#include "Render_Create.h"
+//#include "../CoreSystems/CoreStd.h"
+//#include "../CoreSystems/DXDriver.h"
+//
+//#include "Shader.h"
+//#include "Render_Create.h"
+class DXDriver;
+class D3DBuffer;
 
 class IRenderer
 {

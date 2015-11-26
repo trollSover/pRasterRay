@@ -62,10 +62,10 @@ void RayCaster::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _indices)
 	_driver->GetContext()->CSSetUnorderedAccessViews(4, 2, uav, NULL);
 
 	m_pSinglePassVoxelCS->VStage(_driver->GetContext());
+
 	_driver->GetContext()->Dispatch(40, 45, 1);
 
 	_driver->GetContext()->CSSetShader(nullptr, nullptr, 0);
-
 
 	uav[0] = nullptr;
 	uav[1] = nullptr;

@@ -66,6 +66,7 @@ void DebugRenderer::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _indi
 
 	_driver->GetContext()->IASetVertexBuffers(0, 1, vbuffers, &stride, &offset);
 	_driver->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 	_driver->GetContext()->Draw(_model->GetNElements(), 0);
 
 	ID3D11RenderTargetView* empties[RENDERTARGET_COUNT] = { NULL, NULL, NULL };
