@@ -210,20 +210,21 @@ void DXDriver::BeginScene()
 	m_context->OMSetBlendState(m_blendState, blendFactor, 0xffffffff);
 }
 
-bool DXDriver::EndScene()
+HRESULT DXDriver::EndScene()
 {
 	HRESULT hr = S_OK;
 
 	// present final image
 	hr = m_swapChain->Present(0, 0);
 
-	if (FAILED(hr))
-	{
-		PrintError(AT, "swapchain failed");
-		return false;
-	}
+	return hr;
+	//if (FAILED(hr))
+	//{
+	//	PrintError(AT, hr);
+	//	return false;
+	//}
 
-	return true;
+	//return true;
 }
 
 void DXDriver::SetRasterizerState(D3D11_CULL_MODE _cullMode, D3D11_FILL_MODE _fillMode)

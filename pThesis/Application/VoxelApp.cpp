@@ -338,6 +338,19 @@ bool VoxelApp::VInit()
 	cbVoxel.gridLength = m_svo.m_svoLoader.m_header.gridlength;
 	cbVoxel.rootDepth = m_svo.m_svoLoader.m_header.numLevels;
 
+	//int testNode = 0;
+	//for (int i = 0; i < 8; ++i)
+	//{
+	//	if (root->HasChildAtIndex(i))
+	//	{
+	//		testNode = root->GetChildAddress(i);
+	//		break;
+	//	}
+	//}
+
+	//cbVoxel.rootIndex = testNode;
+	//cbVoxel.rootDepth = cbVoxel.rootDepth - 1;
+
 	if (FAILED(m_pDriver->MapSubResource(m_pVoxelCB->GetResource(), cbVoxel)))
 	{
 		PrintError(AT, "failed to map subresource");
@@ -428,7 +441,7 @@ static float movespeed = 1;
 
 static gpa_uint32 currentWaitSessionID = 1;
 
-bool VoxelApp::VFrame(Time time)
+HRESULT VoxelApp::VFrame(Time time)
 {
 	HRESULT hr = S_OK;
 
@@ -511,41 +524,6 @@ void VoxelApp::RenderUI(const Time& _time)
 	str = stream.str();
 
 	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 200, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
-	stream.str(std::wstring());
-	stream.flush();
-
-	//cbOctreeMatrices.pixelInOctree = TVectorLength(pixel);
-	//cbOctreeMatrices.viewportToCamera = viewportToCamera;
-	////cbOctreeMatrices.cameraToOctree		= XMMatrixInverse(&XMMatrixDeterminant(octreeToWorld), octreeToWorld);
-	//cbOctreeMatrices.cameraToOctree = XMMatrixInverse(&XMMatrixDeterminant(cameraToOctree), cameraToOctree);
-	FMAT4X4 cto = cbOctreeMatrices.cameraToOctree;
-	FMAT4X4 vtc = cbOctreeMatrices.viewportToCamera;
-	stream << "CameraToOctree\n";//
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			// fixed float size + add extra empty space if positive value
-			stream << std::fixed << cto.m[i][j] << (cto.m[i][j] < 0 ? "| " : " | ");
-		}
-		stream << "\n";
-	}
-	str = stream.str();
-	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 400, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
-	stream.str(std::wstring());
-	stream.flush();
-
-	stream << "ViewportToCamera\n";//
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			stream << std::fixed << vtc.m[i][j] << " | ";
-		}
-		stream << "\n";
-	}
-	str = stream.str();
-	m_pFontWrapper->DrawString(m_pDriver->GetContext(), str.c_str(), fontSize, 700, 10, 0xff505050, FW1_NOGEOMETRYSHADER | FW1_RESTORESTATE | FW1_ALIASED);
 	stream.str(std::wstring());
 	stream.flush();
 
@@ -709,8 +687,7 @@ void VoxelApp::UpdateBuffers(void)
 	cbCamera.mViewInverse		= XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mView), cbCamera.mView);
 	cbCamera.mProjectionInverse = XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mProjection), cbCamera.mProjection);
 	cbCamera.mWVPInverse		= XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mWVP), cbCamera.mWVP);
-	cbCamera.mRotation			= m_camera.m_rotationMatrix;
-
+	cbCamera.mRotation			= XMMatrixInverse(&XMMatrixDeterminant(m_camera.m_rotationMatrix), m_camera.m_rotationMatrix);
 	hr = m_pDriver->MapSubResource(m_pCameraCB->GetResource(), cbCamera);
 	if (FAILED(hr))
 	{
@@ -733,45 +710,14 @@ void VoxelApp::UpdateBuffers(void)
 
 	FVEC3 scale					= FVEC3( FVEC2(2.f) / FVEC2(VGetResolution().width, VGetResolution().height), 1.f);	//X
 
-	FMAT4X4 worldToCamera = m_camera.GetViewMatrix();
+	FMAT4X4 worldToCamera = cbCamera.mViewInverse;
 	FMAT4X4 toWorld			= worldToCamera * octreeToWorld;
 
 
 	FVEC3 pixel = Cross(FVEC3(toWorld.m[0][0], toWorld.m[1][0], toWorld.m[2][0]), FVEC3(toWorld.m[0][1], toWorld.m[1][1], toWorld.m[2][1]));
 
-	float dim = 256;
-	FVEC3 min, max;
-	max = FVEC3(dim, dim, dim);
-	
-	FVEC3 pos[] =
-	{
-		FVEC3(0, 0, 0),
-		FVEC3(1, 0, 0),
-		FVEC3(0, 1, 0),
-		FVEC3(1, 1, 0),
-		FVEC3(0, 0, 1),
-		FVEC3(1, 0, 1),
-		FVEC3(0, 1, 1),
-		FVEC3(1, 1, 1),
-	};
-	//printf("DEPTH: 0\n");
-	for (int i = 0; i < 8; ++i)
-	{
-		FVEC3 cmin, cmax;
-		cmin = min + (pos[i] * (dim * 0.5f));
-		cmax = cmin + (pos[7] * (dim * 0.5f));
-		//printf("child: %i\nMin{%.2f:%.2f:%.2f} \nMax{%.2f:%.2f:%.2f}\n", i, cmin.x, cmin.y, cmin.z, cmax.x, cmax.y, cmax.z);
-		//printf("DEPTH: 1\n");
-		for (int j = 0; j < 8; ++j)
-		{
-			FVEC3 dmin, dmax;
-			dmin = cmin + (pos[j] * (dim * 0.25f));
-			dmax = dmin + (pos[7] * (dim * 0.25f));
-			//printf("\tchild: %i\n\tMin{%.2f:%.2f:%.2f} \n\tMax{%.2f:%.2f:%.2f}\n", j, dmin.x, dmin.y, dmin.z, dmax.x, dmax.y, dmax.z);
-		}
-		
-	}
-	int a = 42;
+	//rcEmulate.Init({40, 45}, { 1280, 720 }, &m_svoLoader);
+	//rcEmulate.Emulate(cbCamera);
 	/*
 	// Non-transposed matrices
 	/*cbOctreeMatrices.pixelInOctree		= TVectorLength(pixel);

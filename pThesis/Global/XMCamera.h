@@ -9,6 +9,7 @@ private:
 	FVEC3	m_up;
 	FVEC3	m_forward;
 	FVEC3	m_right;
+	float	m_focalLength;
 
 	FMAT4X4	m_viewMatrix;
 	FMAT4X4	m_projectionMatrix;
@@ -63,6 +64,7 @@ public:
 	FVEC3	GetEyeDir()				const { return m_forward; }
 	FVEC3	GetRight()				const { return m_right; }
 	FVEC3	GetUp()					const { return m_up; }
+	float	GetFocalLength()		const { return m_focalLength; }
 
 	FMAT4X4 WorldToCamera(void) const
 	{

@@ -111,6 +111,9 @@
     <ClCompile Include="Application\PerfTracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RaycastEmulate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CoreSystems\Core.h">
@@ -222,6 +225,9 @@
       <Filter>Header Files\3rd Party</Filter>
     </ClInclude>
     <ClInclude Include="Application\PerfTracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RaycastEmulate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

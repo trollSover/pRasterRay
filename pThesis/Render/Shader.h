@@ -15,7 +15,7 @@ protected:
 public:
 	virtual ~Shader() {}
 
-	bool Init(LPCWSTR _file, ID3D11Device* _device);
+	bool Init(LPCWSTR _file, ID3D11Device* _device, D3D_SHADER_MACRO* = nullptr);
 	virtual void VStage(ID3D11DeviceContext* _context) = 0;
 	virtual void VClose() = 0;
 	virtual const LPCSTR VType() const = 0;

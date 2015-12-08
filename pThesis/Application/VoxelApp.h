@@ -20,7 +20,7 @@
 #include "../include/FW1FontWrapper.h"
 
 #include "PerfTracker.h"
-
+#include "../RaycastEmulate.h"
 //static const int RENDERTARGET_COUNT = 3;
 
 enum RENDER_TYPE
@@ -35,6 +35,9 @@ class VoxelApp
 	: public IApplication
 {
 private:
+	CPURaycaster rcEmulate;
+
+
 	std::vector<uint32_t>	rasterIndices;
 	AmdPerf::PerfContext	m_renderloopPerfContext;
 
@@ -113,7 +116,7 @@ private:
 protected:
 public:
 	bool VInit()			final;
-	bool VFrame(Time time)	final;
+	HRESULT VFrame(Time time)	final;
 
 	Resolution		VGetResolution()	const final;
 	const LPCSTR	VGetAppName()		const final;

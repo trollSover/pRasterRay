@@ -151,43 +151,6 @@ bool SVO_Loader::VLoad(const std::string& _file)
 		printf("amount of nodes (%zf) read does not match expected amount (%zf)\n", m_voxels.size(), m_header.numData);
 	}
 
-	int x, y, z;
-	x = 2;
-	y = 0;
-	z = 0;
-
-	int ox, oy, oz;
-	ox = 1;
-	oy = 1;
-	oz = 1;
-
-	uint32_t mort = MATH::mortonEncode_LUT(x, y, z);
-
-	TNode currentNode = m_nodes[m_nodes.size() - 1];
-	int child = 0;
-	//while (true)
-	{
-		if (x >= ox)
-		{
-			// 1,3,5,7
-			child |= 170;
-		} //  0,2,4,6
-		else child |= 85;
-
-		if (y >= oy)
-		{
-			// 4,5,6,7
-			child |= 15;
-		}  //  0,1,2,3
-		else child |= 240;
-		if (z >= oz)
-		{
-			// 2,3,6,7
-			child |= 51;
-		}  //  0,1,4,5
-		else child |= 204;
-	}
-	
 	fclose(nodeIn);
 
 	return true;

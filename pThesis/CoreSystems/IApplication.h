@@ -13,7 +13,7 @@ public:
 	virtual ~IApplication() {}
 
 	virtual bool VInit()			= 0;
-	virtual bool VFrame(Time time)	= 0;
+	virtual HRESULT VFrame(Time time)	= 0;
 
 	virtual			Resolution	VGetResolution()const = 0;
 	virtual const	LPCSTR		VGetAppName()	const = 0;

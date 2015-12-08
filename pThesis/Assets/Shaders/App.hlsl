@@ -23,8 +23,6 @@ cbuffer cbCamera : register(b0)
 	float3	 g_cameraDir;	// 12
 	float3	 g_right;			// 12
 	float3	 g_up;			// 12
-
-
 };							// = 512 bytes
 
 cbuffer cbResolution : register(b1)
@@ -45,9 +43,9 @@ cbuffer cbResolution : register(b1)
 cbuffer cbVoxel : register(b2)
 {
 	uint numNodes;		// total amount of nodes
-	uint gridLength;	// uniform length of cube
-	uint rootDepth;		// depth N at root level where: { 0, 1, ..., N }
-	uint rootIndex;		// root pointer for Node buffer
+	int gridLength;		// uniform length of cube
+	int rootDepth;		// depth N at root level where: { 0, 1, ..., N }
+	int rootIndex;		// root pointer for Node buffer
 };						// = 16 bytes
 
 cbuffer CBOctreeMatrices : register(b3)
@@ -74,24 +72,6 @@ cbuffer Constrictions : register(b4)
 	uint2 padding3;		// 8
 };						// = 16 bytes
 
-
-
-
-struct TVoxel
-{
-	float4	color;	// 16
-	float3  normal;	// 12
-	
-};					// = 28 bytes
-
-//typedef Volume_Color TVoxel;
-
-//struct TVoxel
-//{
-//	uint	morton;	// 4
-//	VData	data;	// 16
-//};					// = 20 bytes
-
 int ExtractNBits(const uint _bitMask, const uint _endIndex, const uint _Nbits)
 {
 	uint end = 32 - _endIndex * _Nbits;
@@ -111,6 +91,13 @@ struct Node
 	int children;	// 4
 };					// = 12 bytes
 
+struct TVoxel
+{
+	float4	color;	// 16
+	float3  normal;	// 12
+
+};					// = 28 bytes
+
 struct Ray						// 48 bytes
 {
 	float3 origin;			// 12 bytes
@@ -119,93 +106,5 @@ struct Ray						// 48 bytes
 	float direction_sz;		// 4
 };							// 32 bytes
 
-static const int c_popc8LUT[256] =
-{
-	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
-	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
-};
-
-int popc8(uint _mask)
-{
-	return c_popc8LUT[_mask & 0xFFu];
-}
-
 RWStructuredBuffer<TVoxel>	Voxels		: register(u0);
 RWStructuredBuffer<Node>	Nodes		: register(u1);
-
-//bool IsLeaf(Node _node)
-//{
-//	return _node.children == LEAFMASK;
-//}
-
-/* Decode 32-bit interleaved (xyz) morton */
-float3 MortonDecode(uint morton)
-{
-	uint x, y, z;
-	x = y = z = 0;
-	for (uint i = 0; i < (32 / 3); ++i) {
-		x |= ((morton & (uint(1) << uint((3 * i) + 0))) >> uint(((3 * i) + 0) - i));
-		y |= ((morton & (uint(1) << uint((3 * i) + 1))) >> uint(((3 * i) + 1) - i));
-		z |= ((morton & (uint(1) << uint((3 * i) + 2))) >> uint(((3 * i) + 2) - i));
-	}
-	return float3(x, y, z);
-}
-
-bool IntersectAABB(const float3 _rayOrigin, const float3 _rayDirection, out float _min, out float _max)
-{
-	/* source : http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
-	slab intersection of AABB
-	*/
-
-	const float dim = 16.f;
-	float near = -10000000.0f;
-	float far = 10000000.0f;
-
-	float t1, t2;
-	t1 = t2 = 0;
-	// parallel to plane ?
-	for (int i = 0; i != 3; ++i)
-	{
-		if (_rayDirection[i] == 0 && (-dim > _rayOrigin[i] || dim < _rayOrigin[i]))
-			return false;
-
-
-		t1 = (-dim - _rayOrigin[i] / _rayDirection[i]);
-		t2 = (dim - _rayOrigin[i] / _rayDirection[i]);
-
-		if (t1 > t2)
-		{
-			float t = t1;
-			t1 = t2;
-			t2 = t;
-		}
-
-		if (t1 > near)
-			near = t1;
-
-		if (t2 < far)
-			far = t2;
-
-		if (near > far || far < 0.0f)
-			return false;
-	}
-
-	_min = near;
-	_max = far;
-
-	return true;
-}

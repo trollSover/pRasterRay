@@ -16,6 +16,8 @@ Core::~Core()
 
 bool Core::Init(IApplication* _application, HINSTANCE _hInstance)
 {
+	CreateAppLog();
+
 	if (!_application)
 		return false;
 
@@ -72,6 +74,8 @@ void Core::Run()
 
 	while (run)
 	{
+		m_pTimer->VUpdate();
+
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -82,27 +86,14 @@ void Core::Run()
 				run = false;
 			}
 		}
-		//else
-		{			
-
-			//else
-			{		
-				m_pTimer->VUpdate();
-				Time dt = m_pTimer->VGetTime();			/* get time delta */
-				bool frameOk = m_pApplication->VFrame(dt);	/* update application */
-
-				if (!frameOk)
-				{
-					run = false;
-					PrintError(AT, "error encountered during rendering - shutting down");
-				}			
-			}			
-		}
-
-		//if (msg.message == WM_QUIT)
-		//{
-		//	run = false;
-		//}
 		
+		Time dt = m_pTimer->VGetTime();					/* get time delta */
+		HRESULT frameOk = m_pApplication->VFrame(dt);	/* update application */
+
+		if (frameOk != S_OK)
+		{
+			run = false;
+			PrintError(AT, frameOk);
+		}	
 	}
 }

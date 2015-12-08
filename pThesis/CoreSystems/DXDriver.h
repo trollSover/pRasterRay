@@ -71,7 +71,7 @@ public:
 	bool Init(Resolution _res);
 
 	void BeginScene();
-	bool EndScene();
+	HRESULT EndScene();
 
 	void SetRasterizerState(D3D11_CULL_MODE _cullMode, D3D11_FILL_MODE _fillMode);
 	

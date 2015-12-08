@@ -56,6 +56,7 @@ void XMCamera::SetPerspectiveProjectionLH(float fov, float width, float height, 
 
 	m_viewMatrix = XMMatrixLookAtLH(XMLoadFloat4(&p), XMLoadFloat4(&l), XMLoadFloat4(&u));
 
+	m_focalLength = m_projectionMatrix.m00;
 	//m_projectionMatrix	= TMatrixTranspose(m_projectionMatrix);
 	//m_viewMatrix		= TMatrixTranspose(m_viewMatrix);
 

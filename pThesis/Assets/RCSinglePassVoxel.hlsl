@@ -1,8 +1,30 @@
 #include "Shaders/App.hlsl"
 
-// output buffer - in this case the deferred color buffer 
-RWTexture2D<float>  readBuffer  : register(u4);
-RWTexture2D<float4> writeBuffer : register(u5);
+/* Work/Thread distribution */
+#ifndef THREAD_COUNT_X
+#define THREAD_COUNT_X 1
+#endif
+#ifndef THREAD_COUNT_Y
+#define THREAD_COUNT_Y 1
+#endif
+#ifndef WORK_SIZE_Y
+#define WORK_SIZE_Y 1
+#endif
+#ifndef WORK_SIZE_X
+#define WORK_SIZE_X 1
+#endif
+
+/* Raycast limits */
+#ifndef STACK_LIMIT
+#define STACK_LIMIT 1
+#endif
+#ifndef ITR_LIMIT
+#define ITR_LIMIT 1
+#endif
+
+// read/write buffers
+RWTexture2D<float>  readBuffer  : register(u4);	// z-buffer 
+RWTexture2D<float4> writeBuffer : register(u5);	// color buffer
 
 #define BLACK		float4(0,0,0,1);
 #define WHITE		float4(1,1,1,1);
@@ -14,37 +36,37 @@ RWTexture2D<float4> writeBuffer : register(u5);
 #define GREENBLUE	float4(0,1,1,1);
 #define GREY		float4(0.5,0.5,0.5,1);
 
-static const float4 colors[] = {
-	float4(1, 0, 0, 1),			// 0	: RED
-	float4(0, 1, 0, 1),			// 1	: GREEN
-	float4(0, 0, 1, 1),			// 2	: BLUE
-	float4(1, 1, 0, 1),			// 3	: YELLOW
-	float4(1, 0, 1, 1),			// 4	: PURPLE
-	float4(0, 1, 1, 1),			// 5	: BABY BLUE
-	float4(0.5, 0.5, 0.5, 1),	// 6	: GREY
-	float4(1, 1, 1, 1)			// 7	: WHITE
-};
-
-
-
-struct AABB {
-	float3 Min;
-	float3 Max;
-};
-
-bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
+/* constants */
+cbuffer cbImmutable
 {
-	float3 invR = 1.0 / r.direction;
-	float3 tbot = invR * (aabb.Min - r.origin);
-	float3 ttop = invR * (aabb.Max - r.origin);
-	float3 tmin = min(ttop, tbot);
-	float3 tmax = max(ttop, tbot);
-	float2 t	= max(tmin.xx, tmin.yz);
-	t0			= max(t.x, t.y);
-	t			= min(tmax.xx, tmax.yz);
-	t1			= min(t.x, t.y);
-	return t0 <= t1;
-}
+	/* colors corresponding to octree child offset position */
+	static const float4 colors[] = {
+		float4(1, 0, 0, 1),			// 0	: RED
+		float4(0, 1, 0, 1),			// 1	: GREEN
+		float4(0, 0, 1, 1),			// 2	: BLUE
+		float4(1, 1, 0, 1),			// 3	: YELLOW
+		float4(1, 0, 1, 1),			// 4	: PURPLE
+		float4(0, 1, 1, 1),			// 5	: BABY BLUE
+		float4(0.75, 0.75, 0.75, 1),// 6	: GREY
+		float4(1, 1, 1, 1)			// 7	: WHITE
+	};
+
+	/* octree child offset position */
+	static const float3 pos[] =
+	{
+		float3(0, 0, 0),		// 0	: RED
+		float3(1, 0, 0),		// 1	: GREEN
+		float3(0, 1, 0),		// 2	: BLUE
+		float3(1, 1, 0),		// 3	: YELLOW
+		float3(0, 0, 1),		// 4	: PURPLE
+		float3(1, 0, 1),		// 5	: BABY BLUE
+		float3(0, 1, 1),		// 6	: GREY
+		float3(1, 1, 1),		// 7	: WHITE
+	};
+
+	static const float3 wmin = mul(float4(0, 0, 0, 1), g_ViewInverse).xyz;
+	static const float3 wmax = mul(float4(gridLength, gridLength, gridLength, 1), g_ViewInverse).xyz;
+};
 
 bool Intersect(Ray r, in float3 _min, in float3 _max, out float t0, out float t1)
 {
@@ -105,42 +127,21 @@ bool IsLeaf(const in uint _nodePtr)
 {
 	// compare zero to bitwise AND of the first 8 bits in child-descriptor
 	return  0 == (Nodes[_nodePtr].children & ((1 << 8) - 1));
+
+	//return  0 == (Nodes[_nodePtr].children & ((1 << 8) - 1)) && Nodes[_nodePtr].dataPtr != 0;
 }
 
-bool Intersect(Ray _ray, AABB _box, out float3 _intersectionPoint)
+bool IsNull(const in uint _nodePtr)
 {
-	float3 tmin = (_box.Min - _ray.origin) / _ray.direction;
-		float3 tmax = (_box.Max - _ray.origin) / _ray.direction;
-
-		_intersectionPoint = min(tmin, tmax);
-
-	float3 real_min = min(tmin, tmax);
-		float3 real_max = max(tmin, tmax);
-
-		float minmax = min(min(real_max.x, real_max.y), real_max.z);
-	float maxmin = max(max(real_min.x, real_min.y), real_min.z);
-
-	return (minmax >= maxmin);
+	return IsLeaf(_nodePtr) && (Nodes[_nodePtr].dataPtr == 0);
 }
 
-//float EuclideanDistance(in float3 _ro, in float3 _no)
-//{
-//	return sqrt((_ro.x - _no.x) * (_ro.x - _no.x) +
-//		(_ro.y - _no.y) * (_ro.y - _no.y) +
-//		(_ro.z - _no.z) * (_ro.z - _no.z));
-//}
 
 #pragma warning( disable : 4714 )	// due to CAST_STACK_DEPTH we reach the limit of temp registers, will negatively affect performance - disable warning for now
 
 #define CAST_STACK_DEPTH 23
 #define MAX_ITERATIONS  100
 static const float ITR_DEPTH = 1.f / (float)MAX_ITERATIONS;
-
-// copysign intrinsic is not present in hlsl
-float copysign(float _magnitude, float _sign)
-{
-	return _magnitude * sign(_sign);
-}
 
 void Traverse(inout Ray _ray, uint3 threadId)
 {
@@ -215,9 +216,9 @@ void Traverse(inout Ray _ray, uint3 threadId)
 	const int	INVALID_CHILD_DESCRIPTOR	= 0;	// no bits set
 
 	// avoid division by zero on small ray direction
-	if (abs(_ray.direction.x) < epsilon) _ray.direction.x = copysign(epsilon, _ray.direction.x); //(epsilon * sign(_ray.direction.x));
-	if (abs(_ray.direction.y) < epsilon) _ray.direction.y = copysign(epsilon, _ray.direction.y); //(epsilon * sign(_ray.direction.y));
-	if (abs(_ray.direction.z) < epsilon) _ray.direction.z = copysign(epsilon, _ray.direction.z); //(epsilon * sign(_ray.direction.z));
+	//if (abs(_ray.direction.x) < epsilon) _ray.direction.x = copysign(epsilon, _ray.direction.x); //(epsilon * sign(_ray.direction.x));
+	//if (abs(_ray.direction.y) < epsilon) _ray.direction.y = copysign(epsilon, _ray.direction.y); //(epsilon * sign(_ray.direction.y));
+	//if (abs(_ray.direction.z) < epsilon) _ray.direction.z = copysign(epsilon, _ray.direction.z); //(epsilon * sign(_ray.direction.z));
 
 	// precompute coefficients of t
 	float tx_cf = 1.f / -abs(_ray.direction.x);
@@ -346,7 +347,7 @@ void Traverse(inout Ray _ray, uint3 threadId)
 				//if ((descriptor & 0x10000) != 0)	// far - not our concern
 				//	break;
 
-				offset += popc8(child_masks & 0x7F);
+				//offset += popc8(child_masks & 0x7F);
 
 				const int val = offset * 2;
 				if (val < 0 || val > 7)
@@ -443,30 +444,20 @@ void Traverse(inout Ray _ray, uint3 threadId)
 	//}
 }
 
-void ATraverse(inout Ray _ray, uint3 threadId)
+void ATraverse(inout Ray _ray, uint2 threadId)
 {
-	static const float3 pos[] =
-	{
-		float3(0,0,0),
-		float3(1,0,0),
-		float3(0,1,0),
-		float3(1,1,0),
-		float3(0,0,1),
-		float3(1,0,1),
-		float3(0,1,1),
-		float3(1,1,1),
-	};
-
 	/* iteration variables */
 	int node  = rootIndex;
 	int depth = 0;
 	float scale = 1;
-	const float dim = pow(2, rootDepth - 1);// / (float)resWidth;
+	const float dim = 1 << rootDepth;// pow(2, rootDepth - 1);// / (float)resWidth;
 	float tmin, tmax;
+	
 
-
-	float3 dmin = float3(0, 0, 0);
-	float3 dmax = float3(dim, dim, dim);
+	//float3 dmin = float3(0, 0, 0);
+	//float3 dmax = float3(dim, dim, dim);
+	float3 dmin = float3(dim,dim,dim) * -0.5;
+	float3 dmax = float3(dim, dim, dim) * 0.5;
 
 	struct Stack
 	{
@@ -476,9 +467,13 @@ void ATraverse(inout Ray _ray, uint3 threadId)
 		float3  svmin, svmax;
 	};
 
-	Intersect(_ray, dmin, dmax, tmin, tmax);
+	if (!Intersect(_ray, dmin, dmax, tmin, tmax))
+	{
+		return;
+	}
 
-	Stack stack[125];
+
+	Stack stack[25];
 	stack[0].nodeptr = rootIndex;
 	stack[0].scale = 1.f;
 	stack[0].smin = tmin;
@@ -539,25 +534,33 @@ void ATraverse(inout Ray _ray, uint3 threadId)
 							stack[depth + 1].svmin = dvmin;
 							stack[depth + 1].svmax = dvmax;
 
-							if (IsLeaf(child))
+							stack[depth + 1].smin = max(tvmin, tmin);
+							stack[depth + 1].smax = min(tvmax, tmax);
+							//if (IsLeaf(child))
 							{
 								int voxelptr = Nodes[child].dataPtr;
 								float3 nor = Voxels[voxelptr].normal;
 								float4 col = Voxels[voxelptr].color / 256.f;
 								col.w = 1;
 
-								static const float4 ambientcolor = float4(0.5f, 0.5f, 0.5f, 1.0f);
-								static const float4 diffuseColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-								static const float3 lightDirection = float3(0.0f, -1.0f, 0.5f);
+								static const float4 ambientcolor	= float4(0.5f, 0.5f, 0.5f, 1.0f);
+								static const float4 diffuseColor	= float4(1.0f, 1.0f, 1.0f, 1.0f);
+								static const float3 lightDirection	= float3(0.0f, -1.0f, 0.5f);
 
 								float4 color = col * ambientcolor;
-								float	lightIntensity = saturate(dot(nor, -lightDirection));
+								float	lightIntensity = saturate(dot(nor, lightDirection));
 								if (lightIntensity > 0.f)
-								color += (diffuseColor * lightIntensity);
+									color += (diffuseColor * lightIntensity);
 
-
-								writeBuffer[threadId.xy] = color;
-
+								if (voxelptr == 0)
+								{
+									writeBuffer[threadId.xy] = PURPLE;
+								}
+								else
+								{
+									writeBuffer[threadId.xy] = color;
+								}
+									
 								//	float c = (float)depth / (float)rootDepth;
 								//float4 color = colors[i];
 								//	color.w = 1;
@@ -592,68 +595,308 @@ void ATraverse(inout Ray _ray, uint3 threadId)
 	return;
 }
 
+void BTraverse(in Ray _ray, in uint2 pixel)
+{
+	const int dim = gridLength;
+
+	// stack RAM usage(B) = sizeof(Stack) * resWidth * resHeight
+	struct Stack
+	{
+		int		nodeptr;
+		int		idx;
+		float	scale;
+		float3	origin;
+	};
+
+	int stackIndex = STACK_LIMIT - 1;
+	Stack stack[STACK_LIMIT];
+
+	stack[stackIndex].nodeptr = rootIndex;
+	stack[stackIndex].idx = 0;
+	stack[stackIndex].scale = 1;
+	stack[stackIndex].origin = float3(dim, dim, dim) * -0.5f;
+
+	int itr = 0;
+
+	writeBuffer[pixel.xy] = float4(244.f / 256.f, 164.f / 256.f, 96.f / 256.f, 1);
+	float lim = 1000000;
+	while (stackIndex < STACK_LIMIT)
+	{
+		itr++;
+
+		if (stackIndex < 0)
+		{
+			//writeBuffer[pixel.xy] = RED;
+			break;
+		}
+
+		if (itr > ITR_LIMIT)
+		{
+			//writeBuffer[pixel.xy] = YELLOW;
+			break;
+		}
+
+		int		node	= stack[stackIndex].nodeptr;
+		int		idx		= stack[stackIndex].idx;
+		float	scale	= stack[stackIndex].scale;
+		float3	origin	= stack[stackIndex].origin;
+
+		// does the current node intersect the ray?
+		float3 omin = origin;
+		float3 omax = origin + pos[7] * (dim * scale);
+		float  tmin, tmax;
+
+
+		if (idx < 7)
+		{
+			stack[stackIndex].idx++;	// advance in advance
+		}
+		else
+		{
+			stackIndex++;
+			continue;
+		}
+
+		if (IsNull(node))
+		{
+			stackIndex++;
+			continue;
+		}
+
+		if (IsLeaf(node) && Nodes[node].dataPtr != 0)
+		{
+			int voxelptr = Nodes[node].dataPtr;
+			float4 color = Voxels[voxelptr].color / 256.f;
+				color.w = 1;
+			writeBuffer[pixel.xy] = color;
+			return;
+		}
+
+		float3 tomin = omin + pos[idx] * (dim * scale * 0.5f);
+		float3 tomax = tomin + pos[7] * (dim * scale * 0.5f);
+		float tvmin, tvmax;
+
+
+		if (Intersect(_ray, tomin, tomax, tvmin, tvmax))
+		{
+			//if (tvmin > 0)
+			//	continue;
+
+			//if (min(tvmin, tvmax) < lim)
+			{
+				if (HasChildAtIndex(node, idx))
+				{
+					lim = max(tvmin, tvmax);
+					//writeBuffer[pixel.xy] = colors[idx];
+
+					// child intersect - ADD
+					stackIndex--;
+					stack[stackIndex].nodeptr = GetChildAddress(node, idx);
+					stack[stackIndex].idx = 0;
+					stack[stackIndex].scale = scale * 0.5f;
+					stack[stackIndex].origin = tomin;
+				}
+			}
+		}
+
+		
+
+		continue;
+
+		// do node intersect ?
+		if (Intersect(_ray, omin, omax, tmin, tmax) && true == false)
+		{
+			// node is leaf but not necessarily a terminating node (LoD dependent)
+			if (IsLeaf(node))
+			{
+				if (scale * dim > 1.f)
+					continue;
+
+				int voxelptr = Nodes[node].dataPtr;		
+				float4 color = Voxels[voxelptr].color / 256.f;
+				color.w = 1;
+				writeBuffer[pixel.xy] = color;
+				//return;		
+				stackIndex--;
+				return;
+			}
+			else if (HasChildAtIndex(node, idx))
+			{
+				float ci = (float)itr / (float)ITR_LIMIT;
+				float cs = (float)stackIndex / (float)STACK_LIMIT;
+				//writeBuffer[pixel.xy] = float4(c, c, c, 1);
+				//writeBuffer[pixel.xy] = colors[idx] * c;
+				writeBuffer[pixel.xy] = colors[idx] * cs;
+				int tidx = idx;
+				// ADVANCE TO CHILD
+				if (idx < 7)
+					stack[stackIndex].idx = idx + 1;
+				float3 tomin = omin  + pos[idx] * (dim * scale * 0.5f);
+				float3 tomax = tomin + pos[7] * (dim * scale * 0.5f);
+				float tvmin, tvmax;
+
+				// do node child[idx] intersect?
+				if (Intersect(_ray, tomin, tomax, tvmin, tvmax))
+				{
+					//writeBuffer[pixel.xy] = colors[tidx];
+
+					
+
+					// child intersect - ADD
+					stackIndex--;
+					stack[stackIndex].nodeptr	= GetChildAddress(node, idx);
+					stack[stackIndex].idx		= 0;
+					stack[stackIndex].scale		= scale * 0.5f;
+					stack[stackIndex].origin	= tomin;
+
+					continue;
+				}
+			}
+
+			if (idx < 7)
+			{
+				stack[stackIndex].idx = idx + 1;
+				continue;
+			}
+		}
+
+		// no intersection - POP
+
+		stackIndex++;
+		//stack[stackIndex].idx = stack[stackIndex].idx + 1;	// advance idx
+	}
+
+
+	float sc = (float)stackIndex / (float)STACK_LIMIT;
+	//writeBuffer[pixel.xy] = float4(sc, sc, sc, 1);
+	return;
+	if (stackIndex < 0)
+	{
+		//writeBuffer[pixel.xy] = YELLOW;
+		return;
+	}
+	else if (stackIndex >= STACK_LIMIT)
+	{
+		
+		float c = (float)itr / (float)ITR_LIMIT;
+		//writeBuffer[pixel.xy] = float4(c,c,c,1);
+		return;
+	}
+
+	float c = (float)stackIndex / (float)STACK_LIMIT;
+	float4 color = colors[stack[stackIndex].idx];
+	//writeBuffer[pixel.xy] = float4(255.f / 256.f, 105.f / 256.f, 180.f / 256.f, 1);// GREENBLUE; float4(c, c, c, 1);
+}
+
+
+
+
+
+
+
+//[numthreads(THREAD_COUNT_X, THREAD_COUNT_Y, 1)]
+//void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID, uint groupIndex : SV_GroupIndex)
+//{
+//	unsigned int2 tId = threadId.xy;
+//	tId.x = WORK_SIZE_X * groupId.x;
+//	tId.y = WORK_SIZE_Y * groupId.y;
+//	unsigned int id = groupIndex; // groupId.x + groupId.y;
+//
+//	[unroll]
+//	for (unsigned int j = 0; j < WORK_SIZE_Y; ++j)
+//	{
+//		tId.y = WORK_SIZE_Y * groupId.y + j;
+//
+//		[unroll]
+//		for (unsigned int i = 0; i < WORK_SIZE_X; ++i)
+//		{
+//			tId.x = WORK_SIZE_X * groupId.x + i;
+//
+//			if (readBuffer[tId.xy].r > 0)
+//			{
+//				continue;
+//			}
+//
+//			//writeBuffer[tId.xy] = colors[id % 8];
+//
+//			float y = float(2.f * tId.y + 1.f - resHeight) * (1.f / (float)resHeight) + 1;
+//			float x = float(2.f * tId.x + 1.f - resWidth)  * (1.f / (float)resWidth) + 1;
+//			//float y = (float)threadId.y * (1.f / (resHeight * 0.5f)) + 1.f;
+//			//float x = (float)threadId.x * (1.f / (resWidth  * 0.5f)) - 1.f;
+//			float z = 1.0f;
+//
+//			// Create new ray from the camera position to the pixel position
+//			Ray ray;
+//			float4 aux = (mul(float4(0, 0, 0, 1.f), g_ViewInverse));
+//			ray.origin = aux.xyz / aux.w;
+//			ray.origin_sz = 0;
+//			ray.direction_sz = 0;
+//
+//			// create ray direction from pixelposition in world space
+//			float3 pixelPosition = mul(float4(x, y, z, 1.f), g_ViewInverse).xyz;
+//			ray.direction = normalize(pixelPosition - ray.origin);
+//			ray.origin_sz = 0;
+//			ray.direction_sz = 0;
+//
+//			ATraverse(ray, tId, threadId.xy, id % 8);
+//		}
+//	}
+//
+//	//writeBuffer[threadId.xy] = RED;// bdata[id];
+//	//for (unsigned int i = 0; i < WORK_SIZE_X; ++i)
+//	//{
+//	//	color[i] = colors[groupIndex % 8];
+//	//}
+//
+//	//for (unsigned int j = 0; j < WORK_SIZE_X; ++j)
+//	//{
+//	//	writeBuffer[tId.xy + uint2(j,0)] = color[j];
+//	//}
+//	
+//}
+
+
 #pragma warning( disable : 3556 )	// complain about using int div instead of uint div
-// {32 * 40, 45 * 16} 
+ //{32 * 40, 45 * 16} 
 [numthreads(32, 16, 1)]
 void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
 {
-	/* Naive depth discard
-	note:	* Since the raycasting operates on faraway geometry
-	we can discard any pixel already written to sincen
-	any rasterized object (closer geometry) are by
-	default	prioritized.*/
+	// Naive depth discard
+	//note:	* Since the raycasting operates on faraway geometry
+	//we can discard any pixel already written to sincen
+	//any rasterized object (closer geometry) are by
+	//default	prioritized.
 	if (readBuffer[threadId.xy].r > 0)
 	{
-		//return;
+		return;
 	}
-	//writeBuffer[threadId.xy] = float4(0.75, 0.5, 0.25, 1);
-	//writeBuffer[threadId.xy] = GREENBLUE;
+
 	float y = float(2.f * threadId.y + 1.f - resHeight) * (1.f / (float)resHeight) + 1;
 	float x = float(2.f * threadId.x + 1.f - resWidth)  * (1.f / (float)resWidth) + 1;
 	//float y = (float)threadId.y * (1.f / (resHeight * 0.5f)) + 1.f;
 	//float x = (float)threadId.x * (1.f / (resWidth  * 0.5f)) - 1.f;
 	float z = 1.0f;
 
-	//float3 p = mul(float4(x, y, z, 1), g_WVP).xyz;
-	//x = p.x;
-	//y = p.y;
-	//z = p.z;
-
-
 	// Create new ray from the camera position to the pixel position
 	Ray ray;
 	float4 aux = (mul(float4(0, 0, 0, 1.f), g_ViewInverse));
-	//float4 aux = (mul(float4(0, 0, 0, 1.f), g_WVPInverse));
 	ray.origin = aux.xyz / aux.w;
 	ray.origin_sz = 0;
 	ray.direction_sz = 0;
-
-	ray.origin = g_cameraPos;
 
 	float tnear, tfar;
 
 	// create ray direction from pixelposition in world space
 	float3 pixelPosition = mul(float4(x, y, z, 1.f), g_ViewInverse).xyz;
-	//float3 pixelPosition = mul(float4(x, y, z, 1.f), g_WVPInverse).xyz;
 	ray.direction = normalize(pixelPosition - ray.origin);
 	ray.origin_sz = 0;
 	ray.direction_sz = 0;
 
-	ATraverse(ray, threadId);
+	ray.origin = g_cameraPos;
+
+	BTraverse(ray, threadId.xy);
 	return;
 
-	AABB box;
-	float dim = gridLength;
-	float hdim = dim / 2.f;
-	box.Min = float3(-hdim, -hdim, -hdim);
-	box.Max = float3(hdim, hdim, hdim);
-
-	//if (IntersectBox(ray, box, tnear, tfar))
-	//{
-	//	if (tnear < tfar)
-	//		writeBuffer[threadId.xy] = RED;
-	//}
-	//return;
 	
 	int		xsize	= resWidth;
 	float	vsize	= 1.0f; // maxVoxelSize
@@ -699,17 +942,17 @@ void main(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID
 	ray.origin_sz = near_sz * a - diff_sz * c;
 	ray.direction_sz = diff_sz * (c - b);
 
-	//ray.origin = mul(cto, float4(ray.origin,1)).xyz;
+	ray.origin = mul(cto, float4(ray.origin,1)).xyz;
 	ray.direction = float3( cto._m00 * ray.direction.x + cto._m01 * ray.direction.y + cto._m02 * ray.direction.z,
 							cto._m10 * ray.direction.x + cto._m11 * ray.direction.y + cto._m12 * ray.direction.z,
 							cto._m20 * ray.direction.x + cto._m21 * ray.direction.y + cto._m22 * ray.direction.z);
 
-	//ray.direction = normalize(ray.direction);
+	ray.direction = normalize(ray.direction);
 
-	//ray.direction = mul(float4(ray.direction,1), cto).xyz;
-	//ray.direction = normalize(ray.direction);
+	ray.direction = mul(float4(ray.direction,1), cto).xyz;
+	ray.direction = normalize(ray.direction);
 
-	ATraverse(ray, threadId);
+	ATraverse(ray, threadId.xy);
 	
 	return;
 }

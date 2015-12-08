@@ -101,16 +101,14 @@ struct CBDCamera
 	FVEC3	right;			// 12
 	FVEC3	up;				// 12
 
-
-
-};							// = 512					// = 304
+};							// = 528	
 
 struct CBDVoxel
 {
 	uint32_t numNodes;		// total amount of nodes
-	uint32_t gridLength;	// uniform length of cube
-	uint32_t rootDepth;		// depth N at root level where: { 0, 1, ..., N }
-	uint32_t rootIndex;		// root pointer for Node buffer
+	int32_t gridLength;		// uniform length of cube
+	int32_t rootDepth;		// depth N at root level where: { 0, 1, ..., N }
+	int32_t rootIndex;		// root pointer for Node buffer
 };
 
 struct CBDWindow
@@ -223,35 +221,37 @@ struct Time
 #define VNEW new
 #endif
 
-static void Log(const char* _msg)
+static void CreateAppLog()
 {
-	static bool LogCreated;
 	FILE* file;
 
-	if (!LogCreated)
+	fopen_s(&file, "log.txt", "w");
+
+	if (file)
 	{
-		fopen_s(&file, "log.txt", "w");
 		time_t t = time(NULL);
 		tm tstruct;
 		char buf[80];
 		localtime_s(&tstruct, &t);
 		strftime(buf, sizeof(buf), "%Y-%m-%d.%X\n", &tstruct);
 		fputs(buf, file);
-		LogCreated = true;
+		fclose(file);
 	}
-	else
-		fopen_s(&file, "log.txt", "a");
+
+}
+
+static void Log(const char* _msg)
+{
+	FILE* file;
+
+	fopen_s(&file, "log.txt", "a");
 
 	if (file == nullptr)
 	{
-		if (LogCreated)
-			LogCreated = false;
 		return;
 	}
-	else
-	{
-		fputs(_msg, file);
-	}
+
+	fputs(_msg, file);
 
 	if (file)
 		fclose(file);
@@ -266,7 +266,6 @@ static void PrintError(const char* _location, const std::string _msg)
 		++no_path;
 	else
 		no_path = _location;
-
 
 	printf("-----\nError! %s\n%s\n-----\n", _msg.c_str(), no_path);
 

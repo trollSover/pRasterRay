@@ -44,7 +44,29 @@ bool RayCaster::VInit(DXDriver* _driver)
 		PrintError(AT, "failed to allocate memory for shader");
 		return false;
 	}
-	if (!m_pSinglePassVoxelCS->Init(L"Assets/RCSinglePassVoxel.hlsl", _driver->GetDevice()))
+
+	//D3D_SHADER_MACRO defines[] =
+	//{
+	//	{ "GROUP_SIZE_X", "32" },
+	//	{ "GROUP_SIZE_Y", "16" },
+	//	{ "THREAD_WORK_SIZE", "1" },
+	//	NULL, NULL
+	//};
+
+	Resolution res = g_pApplication->VGetResolution();
+
+	D3D_SHADER_MACRO defines[] =
+	{
+		{ "STACK_LIMIT", "25" },
+		{ "ITR_LIMIT", "1000" },
+		{ "THREAD_COUNT_X", "8" },
+		{ "THREAD_COUNT_Y", "8" },
+		{ "WORK_SIZE_X", "5" },
+		{ "WORK_SIZE_Y", "90" },
+		NULL, NULL
+	};
+
+	if (!m_pSinglePassVoxelCS->Init(L"Assets/RCSinglePassVoxel.hlsl", _driver->GetDevice(), &defines[0]))
 	{
 		PrintError(AT, "failed to create compute shader stage");
 		return false;

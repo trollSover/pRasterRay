@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "D3DCompiler.lib")
 
-bool Shader::Init(LPCWSTR _file, ID3D11Device* _device)
+bool Shader::Init(LPCWSTR _file, ID3D11Device* _device, D3D_SHADER_MACRO* _pShaderDefine)
 {
 	printf("[Compiling] %ls ...", _file);
 
@@ -22,7 +22,7 @@ bool Shader::Init(LPCWSTR _file, ID3D11Device* _device)
 	dwsf |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
 #endif
 
-	hr = D3DCompileFromFile(_file, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", VType(), dwsf, NULL, &compiledShader, &error);
+	hr = D3DCompileFromFile(_file, _pShaderDefine, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", VType(), dwsf, NULL, &compiledShader, &error);
 	
 	if (error)
 	{
@@ -40,7 +40,8 @@ bool Shader::Init(LPCWSTR _file, ID3D11Device* _device)
 
 	if (FAILED(hr))
 	{
-		PrintError(AT, "failed to create shader");
+		//PrintError(AT, "failed to create shader");
+		PrintError(AT, hr);
 		return false;
 	}
 

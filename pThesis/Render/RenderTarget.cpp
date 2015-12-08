@@ -39,7 +39,7 @@ bool RenderTarget::Init(const RenderTargetInit& _rtInit, ID3D11Device* _device)
 	}
 	else
 	{
-		PrintError(AT, "texture already assigned!");
+		PrintError(AT, "texture already assigned!\n");
 	}
 
 	// create rendertarget view

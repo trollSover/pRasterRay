@@ -154,6 +154,7 @@
     <ClCompile Include="Global\TimerQPC.cpp" />
     <ClCompile Include="Global\XMCamera.cpp" />
     <ClCompile Include="include\WICTextureLoader.cpp" />
+    <ClCompile Include="RaycastEmulate.cpp" />
     <ClCompile Include="Render\BackBufferRender.cpp" />
     <ClCompile Include="Render\Buffer.cpp" />
     <ClCompile Include="Render\Culling.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Global\XMCamera.h" />
     <ClInclude Include="include\FW1FontWrapper.h" />
     <ClInclude Include="include\WICTextureLoader.h" />
+    <ClInclude Include="RaycastEmulate.h" />
     <ClInclude Include="Render\BackBufferRender.h" />
     <ClInclude Include="Render\Buffer.h" />
     <ClInclude Include="Render\Culling.h" />
