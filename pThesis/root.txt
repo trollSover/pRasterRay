@@ -1,25 +1,141 @@
+--------------------
 root has 4 children
 address			= 156009
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
+--------------------
 child: 0 has 4 children
 address			= 156005
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
+     child: 0 has 4 children
+     address			= 34484
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+     child: 1 has 5 children
+     address			= 34485
+     child mask 36964411	= 00000010001101000000100000111011
+     children			= 00111011
+
+     child: 4 has 4 children
+     address			= 34486
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+     child: 5 has 4 children
+     address			= 34487
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+--------------------
 child: 1 has 7 children
 address			= 156006
 child mask -701232901	= 11010110001101000000100011111011
 children		= 11111011
 
+     child: 0 has 8 children
+     address			= 83445
+     child mask -87652097	= 11111010110001101000100011111111
+     children			= 11111111
+
+     child: 1 has 5 children
+     address			= 83446
+     child mask -1943928612	= 10001100001000100000000011011100
+     children			= 11011100
+
+     child: 3 has 3 children
+     address			= 83447
+     child mask 16779299	= 00000001000000000000100000100011
+     children			= 00100011
+
+     child: 4 has 7 children
+     address			= 83448
+     child mask -1027176257	= 11000010110001101000100010111111
+     children			= 10111111
+
+     child: 5 has 5 children
+     address			= 83449
+     child mask -1945878323	= 10001100000001000100000011001101
+     children			= 11001101
+
+     child: 6 has 1 children
+     address			= 83450
+     child mask 32	= 00000000000000000000000000100000
+     children			= 00100000
+
+     child: 7 has 2 children
+     address			= 83451
+     child mask 1048594	= 00000000000100000000000000010010
+     children			= 00010010
+
+--------------------
 child: 4 has 4 children
 address			= 156007
 child mask 27265075	= 00000001101000000000100000110011
 children		= 00110011
 
+     child: 0 has 4 children
+     address			= 115211
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+     child: 1 has 4 children
+     address			= 115212
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+     child: 4 has 6 children
+     address			= 115213
+     child mask -1314912013	= 10110001101000000000100011110011
+     children			= 11110011
+
+     child: 5 has 4 children
+     address			= 115214
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+--------------------
 child: 5 has 7 children
 address			= 156008
 child mask -1027176257	= 11000010110001101000100010111111
 children		= 10111111
 
+     child: 0 has 6 children
+     address			= 155998
+     child mask -1573648197	= 10100010001101000000100010111011
+     children			= 10111011
+
+     child: 1 has 5 children
+     address			= 155999
+     child mask -1943928612	= 10001100001000100000000011011100
+     children			= 11011100
+
+     child: 2 has 1 children
+     address			= 156000
+     child mask 2	= 00000000000000000000000000000010
+     children			= 00000010
+
+     child: 3 has 2 children
+     address			= 156001
+     child mask 2051	= 00000000000000000000100000000011
+     children			= 00000011
+
+     child: 4 has 4 children
+     address			= 156002
+     child mask 27265075	= 00000001101000000000100000110011
+     children			= 00110011
+
+     child: 5 has 7 children
+     address			= 156003
+     child mask -733574945	= 11010100010001101000100011011111
+     children			= 11011111
+
+     child: 7 has 1 children
+     address			= 156004
+     child mask 32	= 00000000000000000000000000100000
+     children			= 00100000
+
+--------------------

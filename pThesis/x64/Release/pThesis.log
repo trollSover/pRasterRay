@@ -1,9 +1,7 @@
-﻿Build started 2015-12-03 15:02:17.
+﻿Build started 2015-12-16 23:59:12.
      1>Project "F:\Program\Git\pRasterRay\pThesis\pThesis.vcxproj" on node 2 (Build target(s)).
      1>FxCompile:
          C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"main" /T cs_5_0 /Fo "F:\Program\Git\pRasterRay\pThesis\x64\Release\RCSinglePassVoxel.cso" Assets\RCSinglePassVoxel.hlsl 
-     1>F:\Program\Git\pRasterRay\pThesis\Assets\RCSinglePassVoxel.hlsl(713,13-30): warning X3203: signed/unsigned mismatch, unsigned assumed
-         
          compilation object save succeeded; see F:\Program\Git\pRasterRay\pThesis\x64\Release\RCSinglePassVoxel.cso
        Link:
          pThesis.vcxproj -> F:\Program\Git\pRasterRay\pThesis\x64\Release\pThesis.exe
@@ -11,4 +9,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.43
+Time Elapsed 00:00:00.22

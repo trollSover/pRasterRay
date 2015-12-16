@@ -20,6 +20,7 @@ bool Shader::Init(LPCWSTR _file, ID3D11Device* _device, D3D_SHADER_MACRO* _pShad
 	dwsf |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
 	dwsf |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+	//dwsf |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
 	hr = D3DCompileFromFile(_file, _pShaderDefine, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", VType(), dwsf, NULL, &compiledShader, &error);

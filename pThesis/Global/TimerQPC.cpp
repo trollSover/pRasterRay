@@ -18,6 +18,7 @@ bool TimerQPC::VInit()
 	m_ticksPerMS = (float)(m_frequency / 1000.f);
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&m_start);
+	return true;
 }
 
 Time TimerQPC::VGetTime()

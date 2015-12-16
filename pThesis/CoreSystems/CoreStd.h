@@ -91,17 +91,20 @@ struct CBDCamera
 	FMAT4X4 mProjection;	// 64
 	FMAT4X4 mWorld;			// 64
 
-	FMAT4X4 mViewInverse;
-	FMAT4X4 mProjectionInverse;
-	FMAT4X4 mWVPInverse;
-	FMAT4X4 mRotation;
+	FMAT4X4 mViewInverse;			// 64
+	FMAT4X4 mProjectionInverse;		// 64
+	FMAT4X4 mWVPInverse;			// 64
+	FMAT4X4 mRotation;				// 64
 
 	FVEC3	cameraPos;		// 12
+	float a;
 	FVEC3	cameraDir;		// 12
+	float aa;
 	FVEC3	right;			// 12
+	float aaa;
 	FVEC3	up;				// 12
-
-};							// = 528	
+	float aaaa;
+};							// = 560	
 
 struct CBDVoxel
 {

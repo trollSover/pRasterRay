@@ -57,16 +57,17 @@ bool RayCaster::VInit(DXDriver* _driver)
 
 	D3D_SHADER_MACRO defines[] =
 	{
-		{ "STACK_LIMIT", "25" },
+		{ "STACK_LIMIT", "10" },
 		{ "ITR_LIMIT", "1000" },
-		{ "THREAD_COUNT_X", "8" },
-		{ "THREAD_COUNT_Y", "8" },
+		{ "THREAD_COUNT_X", "32" },
+		{ "THREAD_COUNT_Y", "16" },
 		{ "WORK_SIZE_X", "5" },
-		{ "WORK_SIZE_Y", "90" },
+		{ "WORK_SIZE_Y", "3" },
 		NULL, NULL
 	};
 
 	if (!m_pSinglePassVoxelCS->Init(L"Assets/RCSinglePassVoxel.hlsl", _driver->GetDevice(), &defines[0]))
+	//if (!m_pSinglePassVoxelCS->Init(L"Assets/RCSinglePassVoxel.hlsl", _driver->GetDevice()))
 	{
 		PrintError(AT, "failed to create compute shader stage");
 		return false;
@@ -86,6 +87,7 @@ void RayCaster::VDraw(DXDriver* _driver, D3DBuffer* _model, D3DBuffer* _indices)
 	m_pSinglePassVoxelCS->VStage(_driver->GetContext());
 
 	_driver->GetContext()->Dispatch(40, 45, 1);
+	//_driver->GetContext()->Dispatch(32, 32, 1);
 
 	_driver->GetContext()->CSSetShader(nullptr, nullptr, 0);
 

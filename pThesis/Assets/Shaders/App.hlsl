@@ -9,20 +9,24 @@ static const float3 LightPos = float3(0, 512, 0);
 
 cbuffer cbCamera : register(b0)
 {
-	float4x4 g_WVP;		// 64
-	float4x4 g_View;		// 64
-	float4x4 g_Projection;	// 64
-	float4x4 g_World;	// 64
+	float4x4 g_WVP;					// 64
+	float4x4 g_View;				// 64
+	float4x4 g_Projection;			// 64
+	float4x4 g_World;				// 64
 
-	float4x4 g_ViewInverse;
-	float4x4 g_ProjectionInverse;
-	float4x4 g_WVPInverse;
-	float4x4 g_Rotation;
+	float4x4 g_ViewInverse;			// 64
+	float4x4 g_ProjectionInverse;	// 64
+	float4x4 g_WVPInverse;			// 64
+	float4x4 g_Rotation;			// 64
 
-	float3	 g_cameraPos;	// 12
-	float3	 g_cameraDir;	// 12
-	float3	 g_right;			// 12
-	float3	 g_up;			// 12
+	float3	 g_cameraPos;			// 12
+	float a;
+	float3	 g_cameraDir;			// 12
+	float aa;
+	float3	 g_right;				// 12
+	float aaa;
+	float3	 g_up;					// 12;
+	float aaaa;
 };							// = 512 bytes
 
 cbuffer cbResolution : register(b1)
@@ -80,31 +84,6 @@ int ExtractNBits(const uint _bitMask, const uint _endIndex, const uint _Nbits)
 	return (_bitMask >> begin) & mask;
 }
 
-static const int	NODATA = 0;
-static const uint	NOCHILD = 8;
 static const int	LEAFMASK = -2004318072;
 
-struct Node
-{
-	uint dataPtr;	// 4
-	uint basePtr;	// 4	
-	int children;	// 4
-};					// = 12 bytes
 
-struct TVoxel
-{
-	float4	color;	// 16
-	float3  normal;	// 12
-
-};					// = 28 bytes
-
-struct Ray						// 48 bytes
-{
-	float3 origin;			// 12 bytes
-	float origin_sz;		// 4
-	float3 direction;		// 12 bytes	
-	float direction_sz;		// 4
-};							// 32 bytes
-
-RWStructuredBuffer<TVoxel>	Voxels		: register(u0);
-RWStructuredBuffer<Node>	Nodes		: register(u1);

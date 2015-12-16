@@ -37,7 +37,7 @@ int Launch(HINSTANCE _hInstance)
 	return 0;
 }
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 #include <crtdbg.h>
 #include <stdio.h>
@@ -58,13 +58,13 @@ int main(int argc, char* argv[])
 	return retval;
 }
 
-#else
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-	int retval = Launch<VoxelApp>(hInstance);
-	return retval;
-}
-
-#endif
+//#else
+//
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+//{
+//	int retval = Launch<VoxelApp>(hInstance);
+//	return retval;
+//}
+//
+//#endif
 

@@ -285,8 +285,8 @@ bool VoxelApp::VInit()
 
 	m_pTerrainVBuffer = VNEW D3DBuffer();
 
-	printf("Points: %i RAM estimate: %i MB\n", vertices.size(), sizeof(GPU_Voxel<NC>)* vertices.size() / 1024 / 1024);
-	printf("Voxels: %i RAM estimate: %i MB\n", m_svo.GetVoxelList().size(), (sizeof(GPU_Voxel<NC>) /* Other data? */)* m_svo.GetVoxelList().size() / 1024 / 1024);
+	printf("Points: %i RAM estimate: %i MB\n", vertices.size(), sizeof(Voxel)* vertices.size() / 1024 / 1024);
+	printf("Voxels: %i RAM estimate: %i MB\n", m_svo.GetVoxelList().size(), (sizeof(Voxel) /* Other data? */)* m_svo.GetVoxelList().size() / 1024 / 1024);
 	printf("Nodes: %i RAM estimate: %i MB\n", m_svo.GetNodeList().size(), sizeof(TNode)* m_svo.GetNodeList().size() / 1024 / 1024);
 
 	printf("(Terrain) ");
@@ -408,9 +408,11 @@ bool VoxelApp::VInit()
 	std::ofstream stream;
 	stream.open("root.txt");
 	TNode* pNode = root;
+	stream << "--------------------\n";
 	stream << "root has " << pNode->CountChildren() << " children\naddress\t\t\t= " << rootPtr << "\n";
 	stream << "child mask " << pNode->children << "\t= " << std::bitset<32>(pNode->children).to_string() << "\n";
 	stream << "children\t\t= " << std::bitset<8>(pNode->children).to_string() << "\n\n";
+	stream << "--------------------\n";
 	for (int i = 0; i < 8; ++i)
 	{
 		if (pNode->HasChildAtIndex(i))
@@ -419,6 +421,22 @@ bool VoxelApp::VInit()
 			stream << "child: " << i << " has " << pChild->CountChildren() << " children\naddress\t\t\t= " << pNode->GetChildAddress(i) << "\n";
 			stream << "child mask " << pChild->children << "\t= " << std::bitset<32>(pChild->children).to_string() << "\n";
 			stream << "children\t\t= " << std::bitset<8>(pChild->children).to_string() << "\n\n";
+
+			//stream << "root child[" << i << "] has " << pNode->CountChildren() << " children\naddress\t\t\t= " << rootPtr << "\n";
+			//stream << "child mask " << pNode->children << "\t= " << std::bitset<32>(pNode->children).to_string() << "\n";
+			//stream << "children\t\t= " << std::bitset<8>(pNode->children).to_string() << "\n\n";
+
+			for (int j = 0; j < 8; ++j)
+			{
+				if (pChild->HasChildAtIndex(j))
+				{
+					TNode* pvChild = &m_svo.m_svoLoader.m_nodes[pChild->GetChildAddress(j)];
+					stream << "     child: " << j << " has " << pvChild->CountChildren() << " children\n     address\t\t\t= " << pChild->GetChildAddress(j) << "\n";
+					stream << "     child mask " << pvChild->children << "\t= " << std::bitset<32>(pvChild->children).to_string() << "\n";
+					stream << "     children\t\t\t= " << std::bitset<8>(pvChild->children).to_string() << "\n\n";
+				}
+			}
+			stream << "--------------------\n";
 		}
 	}
 	stream.close();
@@ -688,6 +706,22 @@ void VoxelApp::UpdateBuffers(void)
 	cbCamera.mProjectionInverse = XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mProjection), cbCamera.mProjection);
 	cbCamera.mWVPInverse		= XMMatrixInverse(&XMMatrixDeterminant(cbCamera.mWVP), cbCamera.mWVP);
 	cbCamera.mRotation			= XMMatrixInverse(&XMMatrixDeterminant(m_camera.m_rotationMatrix), m_camera.m_rotationMatrix);
+
+	//XMMATRIX c2w = XMMatrixIdentity();
+
+	//c2w = XMMatrixMultiply(c2w, m_camera.m_rotationMatrix);	// rotate around origo
+
+	//XMFLOAT3 p(m_camera.GetPosition() * -1);
+	//XMMATRIX trans = XMMatrixTranslationFromVector(XMLoadFloat3(&p));
+	//c2w = XMMatrixMultiply(c2w, trans);
+	//
+	//c2w = XMMatrixInverse(&XMMatrixDeterminant(c2w), c2w);
+	//c2w = XMMatrixTranspose(c2w);
+	//cbCamera.mViewInverse = XMMatrixInverse(&XMMatrixDeterminant(m_camera.GetViewMatrix()), m_camera.GetViewMatrix());
+	//cbCamera.mViewInverse = XMMatrixTranspose(cbCamera.mViewInverse);
+
+	cbCamera.up.z = m_camera.GetFocalLength();
+
 	hr = m_pDriver->MapSubResource(m_pCameraCB->GetResource(), cbCamera);
 	if (FAILED(hr))
 	{
