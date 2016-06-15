@@ -19,4 +19,6 @@ public:
 	virtual const	LPCSTR		VGetAppName()	const = 0;
 
 	virtual LRESULT VApplicationProc(HWND _hwnd, UINT _umsg, WPARAM _wparam, LPARAM _lparam) = 0;
+
+	virtual bool VInitialize(HINSTANCE) { return false; }
 };

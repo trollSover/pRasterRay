@@ -224,6 +224,8 @@ struct Time
 #define VNEW new
 #endif
 
+#include "../Revised/Log.h"
+
 static void CreateAppLog()
 {
 	FILE* file;
@@ -272,6 +274,8 @@ static void PrintError(const char* _location, const std::string _msg)
 
 	printf("-----\nError! %s\n%s\n-----\n", _msg.c_str(), no_path);
 
+	Verdandi::Debug::Log(Verdandi::Debug::LogNotification::Custom) << _msg;
+
 #if defined (FORCE_LOG)
 	Log(_msg.c_str());
 #endif
@@ -291,6 +295,8 @@ static void PrintError(const char* _location, const HRESULT _hr)
 
 
 	printf("-----\nError! %s\n%s\n-----\n", msg, no_path);
+
+	Verdandi::Debug::Log(Verdandi::Debug::LogNotification::Custom) << std::string(msg);
 
 #if defined (FORCE_LOG)
 	Log(msg);
@@ -315,15 +321,27 @@ static void PrintError(const char* _location, const HRESULT _hr)
 #define CAMERA_SPEED_DECREMENT	VK_SUBTRACT
 #define CAMERA_SPEED_RESET		VK_MULTIPLY
 #define CAMERA_RESET_ALL		VK_HOME
+#define CAMERA_LOCK				'N'
+#define CAMERA_YAW_LEFT			'T'
+#define CAMERA_YAW_RIGHT		'Y'
+#define CAMERA_ROLL_LEFT		'G'
+#define CAMERA_ROLL_RIGHT		'H'
+#define CAMERA_PITCH_LEFT		'B'
+#define CAMERA_PITCH_RIGHT		'N'
 
 // General UI Input
-#define UI_HELP					'H'
+#define UI_HELP					'P'
 
 // Draw State Input
 #define TOGGLE_RASTERIZE		'1'
 #define TOGGLE_RAYCAST			'2'
+#define TOGGLE_DEBUG			'3'
 #define TOGGLE_CULL_MODE		VK_F1
 #define TOGGLE_FILL_MODE		VK_F2
+#define RASTERIZE_LOD_INCREMENT	VK_F5
+#define RASTERIZE_LOD_DECREMENT VK_F6
+#define RELOAD_SHADER			VK_F8
+
 
 /* General Limit Defines */
 #define CAMERA_SPEED_MAX		10

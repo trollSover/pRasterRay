@@ -47,6 +47,9 @@ public:
 
 	void SetMovementToggle(int i, int v);
 	void AdjustHeadingPitch(float hRad, float pRad);
+	void AdjustYaw(float _rad);
+	void AdjustRoll(float _rad);
+	void AdjustPitch(float _rad);
 
 	void SetMovementSpeed(const float _unitsPerMS);
 	float GetMovementSpeed(void) { return movementSpeed; }

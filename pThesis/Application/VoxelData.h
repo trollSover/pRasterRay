@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "../Utils/Math_Util.h"
+#include "../CoreSystems/CoreStd.h"
 
 namespace VOXEL
 {
@@ -33,6 +34,7 @@ namespace VOXEL
 			
 
 		friend class SVO;
+
 	protected:
 	public:
 		uint64_t	m_morton;

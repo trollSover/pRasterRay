@@ -138,3 +138,24 @@ void XMCamera::AdjustHeadingPitch(float hRad, float pRad)
 	if (m_pitch > TWO_PI)	m_pitch -= (float)TWO_PI;
 	else if (m_pitch < 0.f) m_pitch = (float)TWO_PI + m_pitch;
 }
+
+void XMCamera::AdjustPitch(float _rad)
+{
+	m_pitch += _rad;
+	if (m_pitch > TWO_PI)	m_pitch -= (float)TWO_PI;
+	else if (m_pitch < 0.f) m_pitch = (float)TWO_PI + m_pitch;
+}
+
+void XMCamera::AdjustYaw(float _rad)
+{
+	m_yaw += _rad;
+	if (m_yaw > TWO_PI)		m_yaw -= (float)TWO_PI;
+	else if (m_yaw < 0.f)	m_yaw = (float)TWO_PI + m_yaw;
+}
+
+void XMCamera::AdjustRoll(float _rad)
+{
+	m_roll += _rad;
+	if (m_roll > TWO_PI)	m_roll -= (float)TWO_PI;
+	else if (m_roll < 0.f) m_roll = (float)TWO_PI + m_roll;
+}

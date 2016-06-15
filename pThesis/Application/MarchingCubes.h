@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../CoreSystems/CoreStd.h"
+#include <cassert>
 
 #define ABS(x) (x < 0 ? -(x) : (x))
 
@@ -376,14 +377,21 @@ static FVEC3 VertexInterpolate(double _isolevel, FVEC3 _p1, FVEC3 _p2, double _v
 {
 	if (ABS(_isolevel - _val1) < 0.00001)
 		return(_p1);
-	else if (ABS(_isolevel - _val2) < 0.00001)
+	if (ABS(_isolevel - _val2) < 0.00001)
 		return(_p2);
-	else if (ABS(_val1 - _val2) < 0.00001)
+	if (ABS(_val1 - _val2) < 0.00001)
 		return(_p1);
 
 	double mu = (_isolevel - _val1) / (_val2 - _val1);
+	FVEC3 p;
+	p.x = _p1.x + mu * (_p2.x - _p1.x);
+	p.y = _p1.y + mu * (_p2.y - _p1.y);
+	p.z = _p1.z + mu * (_p2.z - _p1.z);
 
-	return FVEC3(_p1.x + mu * (_p2.x - _p1.x), _p1.y + mu * (_p2.y - _p1.y), _p1.z + mu * (_p2.z - _p1.z));
+	FVEC3 a(_p1.x + mu * (_p2.x - _p1.x), _p1.y + mu * (_p2.y - _p1.y), _p1.z + mu * (_p2.z - _p1.z));
+
+	assert(p.x == a.x && p.y == a.y && p.z == a.z);
+	return p;
 }
 
 static int Polygonize(CELL _cell, double _isolevel, TRIANGLE* _triangles)
@@ -442,6 +450,7 @@ static int Polygonize(CELL _cell, double _isolevel, TRIANGLE* _triangles)
 		_triangles[N].p[0] = vlist[TriTable[cubeIndex][i]];
 		_triangles[N].p[1] = vlist[TriTable[cubeIndex][i + 1]];
 		_triangles[N].p[2] = vlist[TriTable[cubeIndex][i + 2]];
+
 		N++;
 	}
 

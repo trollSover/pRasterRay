@@ -8,6 +8,7 @@ class SimpleInput
 private:
 	bool	m_keys[256];	
 	bool	m_mouseMoved;
+	bool	m_mouseLeftKey;
 protected:
 public:
 	FPOINT	m_mousePoint;
@@ -22,6 +23,7 @@ public:
 		for (uint i = 0; i < 256; ++i)
 			m_keys[i] = false;
 		m_mouseMoved = false;
+		m_mouseLeftKey = false;
 
 		RAWINPUTDEVICE inputDevices[2];
 
@@ -49,6 +51,7 @@ public:
 	bool VIsKeyDown(uint uKey)	final { return m_keys[uKey]; }
 	void VKeyDown(uint uKey)	final { m_keys[uKey] = true; }
 	void VKeyUp(uint uKey)		final { m_keys[uKey] = false; }
+	bool VIsMouseKeyDown(void) { return m_mouseLeftKey; }
 	
 	void Update(HWND &hWnd, HRAWINPUT& lParam)
 	{
@@ -92,11 +95,23 @@ public:
 		}
 
 		/* mouse */
-		else if (raw->header.dwType == RIM_TYPEMOUSE)
+		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
 			m_mousePoint.x	= static_cast<float>(raw->data.mouse.lLastX);
 			m_mousePoint.y	= static_cast<float>(raw->data.mouse.lLastY);
 			m_mouseMoved	= true;
+
+			bool down = (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) > 0;
+			bool up = (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) > 0;
+
+			if (down && !up)
+			{
+				m_mouseLeftKey = true;
+			}
+			if (up)
+			{
+				m_mouseLeftKey = false;
+			}
 		}
 
 		//free allocated memory
