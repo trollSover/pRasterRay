@@ -69,9 +69,6 @@
     <ClCompile Include="Global\XMCamera.cpp">
       <Filter>Source Files\Global</Filter>
     </ClCompile>
-    <ClCompile Include="include\WICTextureLoader.cpp">
-      <Filter>Source Files\3rd Party</Filter>
-    </ClCompile>
     <ClCompile Include="Source.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
@@ -145,9 +142,6 @@
     </ClInclude>
     <ClInclude Include="Global\XMCamera.h">
       <Filter>Header Files\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="include\WICTextureLoader.h">
-      <Filter>Header Files\3rd Party</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Vector_Util.h">
       <Filter>Header Files\Utils</Filter>

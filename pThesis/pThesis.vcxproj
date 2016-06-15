@@ -66,20 +66,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x64;$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x86;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>../include/WICTextureLoader/;$(IncludePath)</IncludePath>
-    <LibraryPath>../lib/DirectXTex/lib/x86;$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath);../lib/FW1FontWrapper_1_1/x64/</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,7 +86,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>aticalrt.lib;aticalcl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>
       </AdditionalOptions>
     </Link>
@@ -148,7 +144,6 @@
     <ClCompile Include="CoreSystems\Window.cpp" />
     <ClCompile Include="Global\TimerQPC.cpp" />
     <ClCompile Include="Global\XMCamera.cpp" />
-    <ClCompile Include="include\WICTextureLoader.cpp" />
     <ClCompile Include="Revised\D3D11_Initialize.cpp" />
     <ClCompile Include="Revised\DXGI_Initialize.cpp" />
     <ClCompile Include="Revised\Frustum.cpp" />
@@ -167,7 +162,6 @@
   <ItemGroup>
     <ClInclude Include="Application\MarchingCubes.h" />
     <ClInclude Include="Application\Node.h" />
-    <ClInclude Include="Application\PerfTracker.h" />
     <ClInclude Include="Application\SVO_IO.h" />
     <ClInclude Include="Application\VoxelData.h" />
     <ClInclude Include="CoreSystems\Core.h" />
@@ -181,7 +175,6 @@
     <ClInclude Include="Global\TimerQPC.h" />
     <ClInclude Include="Global\XMCamera.h" />
     <ClInclude Include="include\FW1FontWrapper.h" />
-    <ClInclude Include="include\WICTextureLoader.h" />
     <ClInclude Include="Render\BackBufferRender.h" />
     <ClInclude Include="Render\ShaderInputFormats.h" />
     <ClInclude Include="Revised\ConstantBufferDefines.h" />

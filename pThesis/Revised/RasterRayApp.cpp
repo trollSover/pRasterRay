@@ -41,8 +41,44 @@ RasterRayApp::RasterRayApp(void) :		m_hwnd(0),
 										m_pBlendState(nullptr),
 										m_lodLevel(0),
 										m_currentDepthStateIndex(0),
-										m_currentRasterStateIndex(0)
-{	}
+										m_currentRasterStateIndex(0),
+										m_pBackBufferIndexBuffer(0),
+										m_pBackBufferInputLayout(0),
+										m_pBackBufferPixelShader(0),
+										m_pBackBufferRenderTargetView(0),
+										m_pBackBufferVertexBuffer(0),
+										m_pBackBufferVertexShader(0),
+										m_pDebugBoundingVolumeBuffer(0),
+										m_pDebugBoundingVolumeIndices(0),
+										m_pDebugGridConstantBuffer(0),
+										m_pDebugGridIndexBuffer(0),
+										m_pDebugGridInputLayout(0),
+										m_pDebugGridPixelShader(0),
+										m_pDebugGridVertexBuffer(0),
+										m_pDebugGridVertexShader(0),
+										m_pGlobalCameraConstantBuffer(0),
+										m_pGlobalWindowConstantBuffer(0),
+										m_pPointSampler(0),
+										m_pRasterizerGeometryInputLayout(0),
+										m_pRasterizerPixelShader(0),
+										m_pRasterizerVertexShader(0),
+										m_pRayCastComputeShader(0),
+										m_pRaycastNodeBuffer(0),
+										m_pRaycastNodeUAV(0),
+										m_pRaycastOctreeConstantBuffer(0),
+										m_pRaycastVoxelBuffer(0),
+										m_pRaycastVoxelUAV(0)
+
+
+{	
+	for (int i = 0; i < 3; ++i)
+	{
+		m_pDeferredRenderTargetViews[i] = nullptr;
+		m_pDeferredShaderResourceViews[i] = nullptr;
+		m_pDeferredTextures[i] = nullptr;
+		m_pDeferredUnorderedAccessViews[i] = nullptr;
+	}
+}
 
 RasterRayApp::~RasterRayApp(void)
 {	
