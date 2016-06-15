@@ -46,8 +46,14 @@
     <Filter Include="Source Files\Render">
       <UniqueIdentifier>{6e953979-113a-4e09-a79c-cdf94e2908c6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render\Shaders">
-      <UniqueIdentifier>{2407ebb1-edac-4638-9e44-aeff5768f4c0}</UniqueIdentifier>
+    <Filter Include="Header Files\Revised">
+      <UniqueIdentifier>{06683e5a-cd84-43fa-ab83-1140de2506cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Revised">
+      <UniqueIdentifier>{2da3f632-5584-4418-a8fa-4c0cbfd0eb42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\slask">
+      <UniqueIdentifier>{7ed517bb-3152-4c9d-9ce7-4f494226e91f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -57,14 +63,8 @@
     <ClCompile Include="CoreSystems\Core.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="Application\VoxelApp.cpp">
-      <Filter>Source Files\Application</Filter>
-    </ClCompile>
     <ClCompile Include="Global\TimerQPC.cpp">
       <Filter>Source Files\Global</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreSystems\DXDriver.cpp">
-      <Filter>Source Files\System</Filter>
     </ClCompile>
     <ClCompile Include="Global\XMCamera.cpp">
       <Filter>Source Files\Global</Filter>
@@ -72,47 +72,47 @@
     <ClCompile Include="include\WICTextureLoader.cpp">
       <Filter>Source Files\3rd Party</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Shader.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Render_Create.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\SVO_Loader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Buffer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\DebugRenderer.cpp">
-      <Filter>Source Files\Application</Filter>
-    </ClCompile>
     <ClCompile Include="Source.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Rasterizer.cpp">
-      <Filter>Source Files\Render</Filter>
+    <ClCompile Include="Revised\D3D11_Initialize.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Render\RayTracer.cpp">
-      <Filter>Source Files\Render</Filter>
+    <ClCompile Include="Revised\DXGI_Initialize.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Render\Culling.cpp">
-      <Filter>Source Files\Render</Filter>
+    <ClCompile Include="Revised\RasterRayApp.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Render\RayCaster.cpp">
-      <Filter>Source Files\Render</Filter>
+    <ClCompile Include="Revised\RasterRayInit.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Render\RenderTarget.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Revised\RasterRayMainLoop.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Render\BackBufferRender.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Revised\RasterRayState.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="Application\PerfTracker.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Revised\RasterRayDraw.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
-    <ClCompile Include="RaycastEmulate.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Revised\SparseOctree.cpp">
+      <Filter>Source Files\Revised</Filter>
+    </ClCompile>
+    <ClCompile Include="Revised\Log.cpp">
+      <Filter>Source Files\Revised</Filter>
+    </ClCompile>
+    <ClCompile Include="Revised\RasterRayClose.cpp">
+      <Filter>Source Files\Revised</Filter>
+    </ClCompile>
+    <ClCompile Include="Revised\Frustum.cpp">
+      <Filter>Source Files\Revised</Filter>
+    </ClCompile>
+    <ClCompile Include="Revised\FrustumCull.cpp">
+      <Filter>Source Files\Revised</Filter>
+    </ClCompile>
+    <ClCompile Include="Revised\FrustumScene.cpp">
+      <Filter>Source Files\Revised</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,9 +128,6 @@
     <ClInclude Include="CoreSystems\Window.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
-    <ClInclude Include="Application\VoxelApp.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
     <ClInclude Include="CoreSystems\IInput.h">
       <Filter>Header Files\System</Filter>
     </ClInclude>
@@ -142,9 +139,6 @@
     </ClInclude>
     <ClInclude Include="Global\TimerQPC.h">
       <Filter>Header Files\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreSystems\DXDriver.h">
-      <Filter>Header Files\System</Filter>
     </ClInclude>
     <ClInclude Include="CoreSystems\DXDescs.h">
       <Filter>Header Files\System</Filter>
@@ -158,40 +152,10 @@
     <ClInclude Include="Utils\Vector_Util.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Render\Shader.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Renderer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Render_Create.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Buffer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Math_Util.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Application\SVO.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
     <ClInclude Include="Application\MarchingCubes.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\RayTracer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Rasterizer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\D3DBufferUtility.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\DebugRenderer.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\ModelLoader.h">
       <Filter>Header Files\Application</Filter>
     </ClInclude>
     <ClInclude Include="Application\Node.h">
@@ -200,23 +164,8 @@
     <ClInclude Include="Application\SVO_IO.h">
       <Filter>Header Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Application\SVO_Loader.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
     <ClInclude Include="Application\VoxelData.h">
       <Filter>Header Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\ShaderInputFormats.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Culling.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\RayCaster.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\RenderTarget.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Render\BackBufferRender.h">
       <Filter>Header Files</Filter>
@@ -227,37 +176,23 @@
     <ClInclude Include="Application\PerfTracker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RaycastEmulate.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Revised\RasterRayApp.h">
+      <Filter>Header Files\Revised</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Assets\FinalOutputPS.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\FinalOutputVS.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\RCSinglePassVoxel.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\App.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\RasterNodeGS.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\RasterNodePS.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\RasterNodeVS.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\pixelDebug.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Assets\Shaders\vertexDebug.hlsl">
-      <Filter>Header Files\Render\Shaders</Filter>
-    </FxCompile>
+    <ClInclude Include="Revised\SparseOctree.h">
+      <Filter>Header Files\Revised</Filter>
+    </ClInclude>
+    <ClInclude Include="Revised\Log.h">
+      <Filter>Header Files\Revised</Filter>
+    </ClInclude>
+    <ClInclude Include="Revised\Frustum.h">
+      <Filter>Header Files\Revised</Filter>
+    </ClInclude>
+    <ClInclude Include="Revised\ConstantBufferDefines.h">
+      <Filter>Header Files\Revised</Filter>
+    </ClInclude>
+    <ClInclude Include="Render\ShaderInputFormats.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

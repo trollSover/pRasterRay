@@ -1,8 +1,9 @@
 #include "CoreSystems/Core.h"
-#include "Application/VoxelApp.h"
-
+#include "Revised\RasterRayApp.h"
 IApplication*	g_pApplication	= nullptr;
 Core*			g_pCoreSystem	= nullptr;
+
+#include <D3D11SDKLayers.h>
 
 template<typename TApplication>
 int Launch(HINSTANCE _hInstance)
@@ -44,18 +45,33 @@ int Launch(HINSTANCE _hInstance)
 
 int main(int argc, char* argv[])
 {
-	printf("Debug\n");
+	IApplication* pApp;
+	{
+		bool initOk;
+		pApp = VNEW RasterRay::RasterRayApp();
+		initOk = pApp->VInit();
+
+		if (initOk)
+			RasterRay::RasterRayApp::RunApplication(pApp);
+
+		delete pApp;
+
+		
+		
+	}
+
+	//printf("Debug\n");
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
-	int retval = Launch<VoxelApp>(hInstance);
+	//int retval = Launch<VoxelApp>(hInstance);
 
 	//printf("preparing memory dump...\n");
 	//_CrtDumpMemoryLeaks();			// lots of memory leaking that needs to be cleaned up
 	//printf("\n/memory dump\n");
+	printf("Press Enter to exit\n");
+	std::getchar();
 
-	Sleep(5000);
-
-	return retval;
+	return 0;
 }
 
 //#else

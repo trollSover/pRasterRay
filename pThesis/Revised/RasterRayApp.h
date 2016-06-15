@@ -4,7 +4,6 @@
 #include "../Global/SimpleInput.h"
 #include "../include/FW1FontWrapper.h"
 #include "../Global/XMCamera.h"
-#include "../Render/Culling.h"
 #include "SparseOctree.h"
 #include "ConstantBufferDefines.h"
 #include "Frustum.h"

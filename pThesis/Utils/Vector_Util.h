@@ -135,7 +135,7 @@ namespace VECTOR
 	public:
 		/* Add */
 		VEC3 operator	+ (const VEC3& _v)	{ return VEC3(_v.x + x, _v.y + y, _v.z + z); }
-		VEC3& operator	+=(const VEC3& _v)	{ x += _v.x; y += _v.y; z += _v.z return *this; }
+		VEC3& operator	+=(const VEC3& _v)	{ x += _v.x; y += _v.y; z += _v.z; return *this; }
 
 		/* Subtract */
 		VEC3 operator	- (const VEC3& _v)	{ return VEC3(x - _v.x, y - _v.y, z - _v.z); }
@@ -266,6 +266,12 @@ namespace VECTOR
 					m[i][j]  = _mat.m[i][j];
 		}
 
+		MATRIX4X4(const T _mat[16])
+		{ 
+			for (unsigned i = 0; i < 4; ++i)
+				for (unsigned j = 0; j < 4; ++j)
+					m[i][j] = _mat[i * 4 + j];
+		}
 		/* Operators */
 	public:
 		/* Add */
