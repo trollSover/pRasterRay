@@ -84,7 +84,7 @@ HRESULT	RasterRayApp::InitializeDXGI(const unsigned _width, const unsigned _heig
 		division comparisons since some combinations are fractions */
 
 	/* these are our refresh rate variables */
-	double numerator = 1;
+	double numerator = 60;	// ugly quickfix for custom resolutions
 	double denominator = 1;
 
 	for (unsigned i = 0; i < modeCount; ++i)
@@ -126,11 +126,25 @@ HRESULT	RasterRayApp::CreateSwapChain(const DXGI_MODE_DESC& _displayMode, HWND _
 
 	DXGI_SWAP_CHAIN_DESC scd = { 0 };
 	scd.BufferCount = 1;
-	scd.BufferDesc.Width					= _displayMode.Width;
-	scd.BufferDesc.Height					= _displayMode.Height;
-	scd.BufferDesc.Format					= _displayMode.Format;
-	scd.BufferDesc.RefreshRate.Numerator	= _displayMode.RefreshRate.Numerator;
-	scd.BufferDesc.RefreshRate.Denominator	= _displayMode.RefreshRate.Denominator;
+	//scd.BufferDesc.Width					= _displayMode.Width;
+	//scd.BufferDesc.Height					= _displayMode.Height;
+	//scd.BufferDesc.Format					= _displayMode.Format;
+	//scd.BufferDesc.RefreshRate.Numerator	= _displayMode.RefreshRate.Numerator;
+	//scd.BufferDesc.RefreshRate.Denominator	= _displayMode.RefreshRate.Denominator;
+
+	try
+	{
+		scd.BufferDesc.Width = VGetResolution().width;
+		scd.BufferDesc.Height = VGetResolution().height;
+		scd.BufferDesc.Format = static_cast<DXGI_FORMAT>(std::stoi(m_appCmd["displaymode"]));
+		scd.BufferDesc.RefreshRate.Numerator = std::stoi(m_appCmd["numerator"]);
+		scd.BufferDesc.RefreshRate.Denominator = std::stoi(m_appCmd["denominator"]);
+	}
+	catch (std::exception e)
+	{
+		PrintError(AT, "app config file - display mode variables corrupt or missing!");
+		return false;
+	}
 
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	scd.OutputWindow = _hwnd;

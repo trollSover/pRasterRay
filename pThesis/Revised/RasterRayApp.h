@@ -148,6 +148,11 @@ namespace RasterRay
 
 		Frustum	m_frustum;
 		OctreeConstantBuffer m_raycastSceneCB;
+
+		/* User Config */
+		std::map<std::string, std::string> m_appCmd;
+		unsigned m_resWidth, m_resHeight;
+		unsigned m_dispatchX, m_dispatchY;
 		
 		/* Methods */
 	private:
@@ -195,6 +200,8 @@ namespace RasterRay
 
 		void UpdateRenderState(void);
 
+		bool ReloadAppConfig(void);
+
 	public:
 		RasterRayApp(void);
 		~RasterRayApp(void);
@@ -202,7 +209,7 @@ namespace RasterRay
 		virtual bool			VInit(void)	override;
 		virtual	HRESULT			VFrame(Time)override;
 		virtual const	LPCSTR	VGetAppName(void) const	override { return "RasterRay"; }
-		virtual	Resolution		VGetResolution()const override { return{ 1280, 720 }; }
+		virtual	Resolution		VGetResolution()const override { return { m_resWidth, m_resHeight}; }
 		virtual	LRESULT			VApplicationProc(HWND, unsigned, WPARAM, LPARAM) override;
 
 		static void RunApplication(IApplication*);

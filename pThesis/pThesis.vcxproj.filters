@@ -43,17 +43,11 @@
     <Filter Include="Header Files\Render">
       <UniqueIdentifier>{1bea5f16-952d-4691-a4c3-6494e83e6864}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Render">
-      <UniqueIdentifier>{6e953979-113a-4e09-a79c-cdf94e2908c6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Revised">
       <UniqueIdentifier>{06683e5a-cd84-43fa-ab83-1140de2506cd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Revised">
       <UniqueIdentifier>{2da3f632-5584-4418-a8fa-4c0cbfd0eb42}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\slask">
-      <UniqueIdentifier>{7ed517bb-3152-4c9d-9ce7-4f494226e91f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -161,14 +155,8 @@
     <ClInclude Include="Application\VoxelData.h">
       <Filter>Header Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Render\BackBufferRender.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\FW1FontWrapper.h">
       <Filter>Header Files\3rd Party</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\PerfTracker.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Revised\RasterRayApp.h">
       <Filter>Header Files\Revised</Filter>

@@ -149,7 +149,7 @@ void RasterRayApp::DrawRayCast(void)
 
 	m_pContext->CSSetUnorderedAccessViews(0, 5, uavs, 0);
 	m_pContext->CSSetShader(m_pRayCastComputeShader, 0, 0);
-	m_pContext->Dispatch(40, 45, 1);
+	m_pContext->Dispatch(m_dispatchX, m_dispatchY, 1);
 	m_pContext->CSSetShader(0, 0, 0);
 
 	uavs[0] = nullptr;

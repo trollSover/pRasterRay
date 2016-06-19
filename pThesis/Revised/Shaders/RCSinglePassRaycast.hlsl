@@ -370,7 +370,7 @@ void MainCS(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThread
 {
 	// Naive depth discard
 	//note:	* Since the raycasting operates on faraway geometry
-	//we can discard any pixel already written to sincen
+	//we can discard any pixel already written to since
 	//any rasterized object (closer geometry) are by
 	//default	prioritized.
 	if (readBuffer[threadId.xy].r > 0)
@@ -378,19 +378,9 @@ void MainCS(uint3 threadId : SV_DispatchThreadID, uint3 groupId : SV_GroupThread
 		return;
 	}
 
-	float N = WORK_SIZE_X * WORK_SIZE_Y;
-	float invN = 1.f / N;
-	//float x = float(2.f * threadId.x + 1.f - N) * invN;
-	//float y = -float(2.f * threadId.y + 1.f - N) * invN;
-	//float y = -float(2.f * (float)threadId.y + 1.f - (float)g_resolutionHeight) * (1.f / (float)g_resolutionHeight) + 1;
-	//float x = float(2.f * (float)threadId.x + 1.f - (float)g_resolutionWidth)  * (1.f / (float)g_resolutionWidth) + 1;
 	float y = -(float)threadId.y * (1.f / ((float)g_resolutionHeight * 0.5f)) + 1.f;
 	float x = (float)threadId.x * (1.f / ((float)g_resolutionWidth  * 0.5f)) - 1.f;
-	//float y = -(float)threadId.y * (1.f / ((float)g_resolutionWidth * 0.5f)) + 1.f;
-	//float x = (float)threadId.x * (1.f / ((float)g_resolutionWidth  * 0.5f)) - 1.f;
 
-	//x = (float)threadId.x * 1.f / (float)g_resolutionWidth * 2 - 1;
-	//y = -(float)threadId.y * 1.f / (float)g_resolutionHeight * 2 + 1;
 	float z = 1;
 	// Create new ray from the camera position to the pixel position
 	Ray ray;

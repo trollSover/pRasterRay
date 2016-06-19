@@ -23,8 +23,67 @@ LRESULT CALLBACK WndProcDispatch(HWND _hwnd, UINT _msg, WPARAM _wparam, LPARAM _
 	else return DefWindowProc(_hwnd, _msg, _wparam, _lparam);
 }
 
+bool RasterRayApp::ReloadAppConfig(void)
+{
+	std::ifstream appStream("app.cfg");
+	if (!appStream.is_open())
+	{
+		PrintError(AT, "app config file not found!");
+		return false;
+	}
+
+
+	std::string str = "";
+	const char delim = '=';
+	std::string key, val;
+	while (std::getline(appStream, str))
+	{
+		if (str.length() == 0)	// empty line
+			continue;
+		if (str.find(delim) == std::string::npos)	// no delim
+			continue;
+		if (str.find('#') != std::string::npos)	// line is comment
+			continue;
+
+		int sep = str.find(delim);
+		key = str.substr(0, sep);
+		val = str.substr(sep + 1, str.length());
+		m_appCmd[key] = val;
+	}
+
+	// ugly quickfix for raycaster dispatch count
+	try
+	{
+		m_dispatchX = std::stoi(m_appCmd["WORK_SIZE_X"]);
+		m_dispatchY = std::stoi(m_appCmd["WORK_SIZE_Y"]);
+	}
+	catch (std::exception e)
+	{
+		PrintError(AT, "app config file - computeshader WORK_SIZE_* corrupt or missing!");
+		return false;
+	}
+
+	return true;
+}
+
 bool RasterRayApp::VInit(void)
 {
+	if (!ReloadAppConfig())
+	{
+		return false;
+	}
+
+	try
+	{
+		m_resWidth = std::stoi(m_appCmd["width"]);
+		m_resHeight = std::stoi(m_appCmd["height"]);
+	}
+	catch (std::exception e)
+	{
+		PrintError(AT, "app config file - no resolution defined!");
+		return false;
+	}
+
 	m_hInstance = GetModuleHandle(0);
 
 	HRESULT hr			= S_OK;

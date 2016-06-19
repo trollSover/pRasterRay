@@ -67,7 +67,11 @@ RasterRayApp::RasterRayApp(void) :		m_hwnd(0),
 										m_pRaycastNodeUAV(0),
 										m_pRaycastOctreeConstantBuffer(0),
 										m_pRaycastVoxelBuffer(0),
-										m_pRaycastVoxelUAV(0)
+										m_pRaycastVoxelUAV(0),
+										m_resWidth(800),
+										m_resHeight(600),
+										m_dispatchX(1),
+										m_dispatchY(1)
 
 
 {	
@@ -85,17 +89,19 @@ RasterRayApp::~RasterRayApp(void)
 	/* Release all resource in reverse order of initialization */
 	
 	// this is ridicolous - some COM objects refuse to die 
-	m_pContext->ClearState();
-	m_pContext->Flush();
+	if (m_pContext)
+	{
+		m_pContext->ClearState();
+		m_pContext->Flush();
 
-	m_pContext->RSSetState(nullptr);
-	m_pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
-	m_pContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
-	m_pContext->IASetInputLayout(nullptr);
-	m_pContext->OMSetBlendState(nullptr, 0, 0);
-	m_pContext->OMSetDepthStencilState(nullptr, 0);
-	m_pContext->OMSetRenderTargets(0, nullptr, nullptr);
-
+		m_pContext->RSSetState(nullptr);
+		m_pContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
+		m_pContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+		m_pContext->IASetInputLayout(nullptr);
+		m_pContext->OMSetBlendState(nullptr, 0, 0);
+		m_pContext->OMSetDepthStencilState(nullptr, 0);
+		m_pContext->OMSetRenderTargets(0, nullptr, nullptr);
+	}
 	//if (m_pCurrentDepthStencilState) m_pCurrentDepthStencilState->Release();
 	//m_pCurrentDepthStencilState = nullptr;
 	//if (m_pCurrentRasterizerState) m_pCurrentRasterizerState->Release();
@@ -115,7 +121,10 @@ RasterRayApp::~RasterRayApp(void)
 	ReleaseBackBufferEnvironment();
 	ReleaseSwapChain();
 
-	ReleaseDeviceAndContext();
+	if (m_pDevice)
+	{
+		ReleaseDeviceAndContext();
+	}
 
 	DestroyWindow(m_hwnd);
 	m_hwnd = nullptr;

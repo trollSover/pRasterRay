@@ -504,18 +504,37 @@ HRESULT RasterRayApp::CreateRaycaster(void)
 	HRESULT hr = S_OK;
 
 	/* create compute shader */
-	D3D_SHADER_MACRO defines[] =
+	D3D_SHADER_MACRO defines[7];
+	//{
+	//	{ "STACK_LIMIT", "15" },
+	//	{ "ITR_LIMIT", "1000" },
+	//	{ "THREAD_COUNT_X", "32" },
+	//	{ "THREAD_COUNT_Y", "16" },
+	//	{ "WORK_SIZE_X", "5" },
+	//	{ "WORK_SIZE_Y", "3" },
+	//	NULL, NULL
+	//};
+	try
 	{
-		{ "STACK_LIMIT", "15" },
-		{ "ITR_LIMIT", "1000" },
-		{ "THREAD_COUNT_X", "32" },
-		{ "THREAD_COUNT_Y", "16" },
-		{ "WORK_SIZE_X", "5" },
-		{ "WORK_SIZE_Y", "3" },
-		NULL, NULL
-	};
+		defines[0] = { "STACK_LIMIT", m_appCmd["STACK_LIMIT"].c_str()};
+		defines[1] = { "ITR_LIMIT", m_appCmd["ITR_LIMIT"].c_str() };
+		defines[2] = { "THREAD_COUNT_X", m_appCmd["THREAD_COUNT_X"].c_str() };
+		defines[3] = { "THREAD_COUNT_Y", m_appCmd["THREAD_COUNT_Y"].c_str() };
+		defines[4] = { "WORK_SIZE_X", m_appCmd["WORK_SIZE_X"].c_str() };
+		defines[5] = { "WORK_SIZE_Y", m_appCmd["WORK_SIZE_Y"].c_str() };
+		defines[6] = { NULL, NULL };
+	}
+	catch (std::exception e)
+	{
+		PrintError(AT, "Raycast shader macro defines corrupt or missing!");
+		return false;
+	}
+
+	std::string str = m_appCmd["computeshader"];
+
 	ID3D10Blob* pShaderByteCode = nullptr;
-	hr = CompileShader(L"Revised/Shaders/RCSinglePassRaycast.hlsl", "cs_5_0", pShaderByteCode, "MainCS", &defines[0]);
+	hr = CompileShader(std::wstring(str.begin(), str.end()).c_str(), "cs_5_0", pShaderByteCode, "MainCS", &defines[0]);
+	//hr = CompileShader(shaderFile, "cs_5_0", pShaderByteCode, "MainCS", &defines[0]);
 	if (hr != S_OK) { PrintError(AT, hr); return hr; }
 
 	hr = m_pDevice->CreateComputeShader(pShaderByteCode->GetBufferPointer(), pShaderByteCode->GetBufferSize(), 0, &m_pRayCastComputeShader);
